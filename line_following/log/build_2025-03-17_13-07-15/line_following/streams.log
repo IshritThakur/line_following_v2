@@ -1,0 +1,24 @@
+[0.959s] Invoking command in '/home/auro/project/line_following/build/line_following': PYTHONPATH=/home/auro/project/line_following/build/line_following/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/auro/project/line_following/install/line_following/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py develop --editable --build-directory /home/auro/project/line_following/build/line_following/build --no-deps symlink_data
+[1.356s] running develop
+[1.622s] running egg_info
+[1.623s] creating line_following.egg-info
+[1.623s] writing line_following.egg-info/PKG-INFO
+[1.623s] writing dependency_links to line_following.egg-info/dependency_links.txt
+[1.623s] writing entry points to line_following.egg-info/entry_points.txt
+[1.623s] writing requirements to line_following.egg-info/requires.txt
+[1.623s] writing top-level names to line_following.egg-info/top_level.txt
+[1.623s] writing manifest file 'line_following.egg-info/SOURCES.txt'
+[1.623s] reading manifest file 'line_following.egg-info/SOURCES.txt'
+[1.623s] writing manifest file 'line_following.egg-info/SOURCES.txt'
+[1.624s] running build_ext
+[1.624s] Creating /home/auro/project/line_following/install/line_following/lib/python3.10/site-packages/line-following.egg-link (link to .)
+[1.625s] Installing controller script to /home/auro/project/line_following/install/line_following/lib/line_following
+[1.625s] 
+[1.626s] Installed /home/auro/project/line_following/build/line_following
+[1.626s] running symlink_data
+[1.626s] creating /home/auro/project/line_following/install/line_following/share/ament_index
+[1.626s] creating /home/auro/project/line_following/install/line_following/share/ament_index/resource_index
+[1.626s] creating /home/auro/project/line_following/install/line_following/share/ament_index/resource_index/packages
+[1.626s] symbolically linking /home/auro/project/line_following/build/line_following/resource/line_following -> /home/auro/project/line_following/install/line_following/share/ament_index/resource_index/packages
+[1.626s] symbolically linking /home/auro/project/line_following/build/line_following/package.xml -> /home/auro/project/line_following/install/line_following/share/line_following
+[1.653s] Invoked command in '/home/auro/project/line_following/build/line_following' returned '0': PYTHONPATH=/home/auro/project/line_following/build/line_following/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/auro/project/line_following/install/line_following/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py develop --editable --build-directory /home/auro/project/line_following/build/line_following/build --no-deps symlink_data

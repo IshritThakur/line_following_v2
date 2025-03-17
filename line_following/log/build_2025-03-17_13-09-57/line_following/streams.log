@@ -1,0 +1,36 @@
+[0.953s] Invoking command in '/home/auro/project/line_following/build/line_following': PYTHONPATH=/home/auro/project/line_following/build/line_following/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/auro/project/line_following/install/line_following/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py develop --uninstall --editable --build-directory /home/auro/project/line_following/build/line_following/build
+[1.347s] running develop
+[1.607s] Removing /home/auro/project/line_following/install/line_following/lib/python3.10/site-packages/line-following.egg-link (link to .)
+[1.632s] Invoked command in '/home/auro/project/line_following/build/line_following' returned '0': PYTHONPATH=/home/auro/project/line_following/build/line_following/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/auro/project/line_following/install/line_following/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py develop --uninstall --editable --build-directory /home/auro/project/line_following/build/line_following/build
+[1.634s] Invoking command in '/home/auro/project/line_following': PYTHONPATH=/home/auro/project/line_following/build/line_following/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/auro/project/line_following/install/line_following/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base build/line_following build --build-base /home/auro/project/line_following/build/line_following/build install --record /home/auro/project/line_following/build/line_following/install.log --single-version-externally-managed install_data --force
+[2.002s] running egg_info
+[2.003s] writing build/line_following/line_following.egg-info/PKG-INFO
+[2.003s] writing dependency_links to build/line_following/line_following.egg-info/dependency_links.txt
+[2.003s] writing entry points to build/line_following/line_following.egg-info/entry_points.txt
+[2.003s] writing requirements to build/line_following/line_following.egg-info/requires.txt
+[2.003s] writing top-level names to build/line_following/line_following.egg-info/top_level.txt
+[2.007s] reading manifest file 'build/line_following/line_following.egg-info/SOURCES.txt'
+[2.007s] writing manifest file 'build/line_following/line_following.egg-info/SOURCES.txt'
+[2.007s] running build
+[2.008s] running build_py
+[2.008s] creating /home/auro/project/line_following/build/line_following/build
+[2.008s] creating /home/auro/project/line_following/build/line_following/build/lib
+[2.008s] creating /home/auro/project/line_following/build/line_following/build/lib/line_following
+[2.008s] copying line_following/controller.py -> /home/auro/project/line_following/build/line_following/build/lib/line_following
+[2.008s] copying line_following/__init__.py -> /home/auro/project/line_following/build/line_following/build/lib/line_following
+[2.008s] running install
+[2.008s] running install_lib
+[2.009s] creating /home/auro/project/line_following/install/line_following/lib/python3.10/site-packages/line_following
+[2.009s] copying /home/auro/project/line_following/build/line_following/build/lib/line_following/controller.py -> /home/auro/project/line_following/install/line_following/lib/python3.10/site-packages/line_following
+[2.009s] copying /home/auro/project/line_following/build/line_following/build/lib/line_following/__init__.py -> /home/auro/project/line_following/install/line_following/lib/python3.10/site-packages/line_following
+[2.010s] byte-compiling /home/auro/project/line_following/install/line_following/lib/python3.10/site-packages/line_following/controller.py to controller.cpython-310.pyc
+[2.011s] byte-compiling /home/auro/project/line_following/install/line_following/lib/python3.10/site-packages/line_following/__init__.py to __init__.cpython-310.pyc
+[2.011s] running install_data
+[2.011s] copying resource/line_following -> /home/auro/project/line_following/install/line_following/share/ament_index/resource_index/packages
+[2.011s] copying package.xml -> /home/auro/project/line_following/install/line_following/share/line_following
+[2.011s] running install_egg_info
+[2.014s] Copying build/line_following/line_following.egg-info to /home/auro/project/line_following/install/line_following/lib/python3.10/site-packages/line_following-0.0.0-py3.10.egg-info
+[2.015s] running install_scripts
+[2.043s] Installing controller script to /home/auro/project/line_following/install/line_following/lib/line_following
+[2.044s] writing list of installed files to '/home/auro/project/line_following/build/line_following/install.log'
+[2.067s] Invoked command in '/home/auro/project/line_following' returned '0': PYTHONPATH=/home/auro/project/line_following/build/line_following/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/auro/project/line_following/install/line_following/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base build/line_following build --build-base /home/auro/project/line_following/build/line_following/build install --record /home/auro/project/line_following/build/line_following/install.log --single-version-externally-managed install_data --force

@@ -1,0 +1,22 @@
+running develop
+running egg_info
+creating line_following.egg-info
+writing line_following.egg-info/PKG-INFO
+writing dependency_links to line_following.egg-info/dependency_links.txt
+writing entry points to line_following.egg-info/entry_points.txt
+writing requirements to line_following.egg-info/requires.txt
+writing top-level names to line_following.egg-info/top_level.txt
+writing manifest file 'line_following.egg-info/SOURCES.txt'
+reading manifest file 'line_following.egg-info/SOURCES.txt'
+writing manifest file 'line_following.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/auro/project/line_following/install/line_following/lib/python3.10/site-packages/line-following.egg-link (link to .)
+Installing controller script to /home/auro/project/line_following/install/line_following/lib/line_following
+
+Installed /home/auro/project/line_following/build/line_following
+running symlink_data
+creating /home/auro/project/line_following/install/line_following/share/ament_index
+creating /home/auro/project/line_following/install/line_following/share/ament_index/resource_index
+creating /home/auro/project/line_following/install/line_following/share/ament_index/resource_index/packages
+symbolically linking /home/auro/project/line_following/build/line_following/resource/line_following -> /home/auro/project/line_following/install/line_following/share/ament_index/resource_index/packages
+symbolically linking /home/auro/project/line_following/build/line_following/package.xml -> /home/auro/project/line_following/install/line_following/share/line_following
