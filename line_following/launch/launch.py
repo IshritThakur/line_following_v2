@@ -4,12 +4,12 @@ from launch import LaunchDescription
 from launch.actions import ExecuteProcess
 
 def generate_launch_description():
-    # Get the share directory of your package (change 'line_following' to your package name if different)
+    # Get the share directory of your package
     pkg_share = get_package_share_directory('line_following')
-    # Build the full path to your custom world file
-    world_file = os.path.join(pkg_share, 'worlds', 'world')
+    # Construct the full path to your world file (adjust folder/file names as needed)
+    world_file = os.path.join(pkg_share, 'world', 'world.xml')
     
-    # Create a process to launch Gazebo with your world file
+    # Launch Gazebo with your custom world file
     gazebo = ExecuteProcess(
         cmd=['gazebo', '--verbose', world_file, '-s', 'libgazebo_ros_factory.so'],
         output='screen'
