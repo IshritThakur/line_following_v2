@@ -1,43 +1,46 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <sdf version="1.6">
-  <world name="world">
-    <!-- Include Gazebo's default ground plane -->
+  <world name="custom_world">
+    <!-- Include default ground plane and lighting -->
     <include>
       <uri>model://ground_plane</uri>
     </include>
-
-    <!-- Include the sun for lighting -->
     <include>
       <uri>model://sun</uri>
     </include>
 
-    <!-- Add a simple line model on the ground -->
-    <model name="line">
+    <!-- Custom line track model with modified dimensions -->
+    <model name="custom_line_track">
       <static>true</static>
-      <!-- Place the line at y=0, slightly above the ground (z=0.01) -->
-      <pose>0 0 0.01 0 0 0</pose>
-      <link name="line_link">
+      <!-- Position the track slightly above the ground -->
+      <pose>0 0 0.02 0 0 0</pose>
+      <link name="track_link">
         <collision name="collision">
           <geometry>
-            <!-- A long, narrow box: adjust size as needed -->
             <box>
-              <size>10 0.2 0.01</size>
+              <size>12 0.3 0.02</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>10 0.2 0.01</size>
+              <size>12 0.3 0.02</size>
             </box>
           </geometry>
           <material>
-            <!-- Black color for a dark line -->
-            <ambient>0 0 0 1</ambient>
-            <diffuse>0 0 0 1</diffuse>
+            <!-- Dark gray color for the track -->
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
           </material>
         </visual>
       </link>
     </model>
+    
+    <!-- Include a robot model (if needed) with an updated pose -->
+    <include>
+      <pose>-1 -2 0.01 0 0 0</pose>
+      <uri>model://custom_turtlebot</uri>
+    </include>
   </world>
 </sdf>
