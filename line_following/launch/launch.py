@@ -39,7 +39,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     pkg_share = get_package_share_directory('line_following')
     # Use the custom world file from the package's "world" folder
-    world_file = os.path.join(pkg_share, 'world', 'world.xml')
+    world_file = os.path.join(pkg_share, 'worlds', 'world.world')
     
     # Log the world file path for debugging purposes
     log_world = LogInfo(msg="Using world file: " + world_file)
@@ -54,7 +54,7 @@ def generate_launch_description():
     line_follower_node = Node(
         package='line_following',
         executable='controller',
-        name='line_follower',
+        name='line_following',
         output='screen'
     )
 
