@@ -55,7 +55,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Launch the line following controller node with the name "line_following"
+    # Launch the line following controller node
     line_following_node = Node(
         package='line_following',
         executable='controller',

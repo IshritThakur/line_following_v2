@@ -37,7 +37,7 @@
       </link>
     </model>
     
-    <!-- Include a robot model (if needed) with an updated pose -->
+    <!-- Include the robot model -->
     <include>
       <pose>-1 -2 0.01 0 0 0</pose>
       <uri>model://line_following_robot</uri>
