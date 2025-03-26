@@ -3,38 +3,36 @@
 # from launch import LaunchDescription
 # from launch.actions import ExecuteProcess
 # from launch_ros.actions import Node
-
+# 
 # def generate_launch_description():
 #     # Get the package share directory (assumes your world file is installed there)
 #     pkg_share = get_package_share_directory('line_following')
 #     # Use your custom world file from the installed share directory
 #     world_file = os.path.join(pkg_share, 'world', 'world.xml')
-    
+#     
 #     # Launch Gazebo with the custom world file
 #     gazebo = ExecuteProcess(
 #         cmd=['gazebo', '--verbose', world_file, '-s', 'libgazebo_ros_factory.so'],
 #         output='screen'
 #     )
-    
+#     
 #     # Launch the controller node (make sure your entry point is correct)
 #     controller_node = Node(
 #         package='line_following',
 #         executable='controller',
 #         output='screen'
 #     )
-    
+#     
 #     ld = LaunchDescription()
 #     ld.add_action(gazebo)
 #     ld.add_action(controller_node)
 #     return ld
 
-
-
 #!/usr/bin/env python3
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess, LogInfo
+from launch.actions import ExecuteProcess, LogInfo, SetEnvironmentVariable
 from launch_ros.actions import Node
 
 def generate_launch_description():
@@ -45,13 +43,19 @@ def generate_launch_description():
     # Log the world file path for debugging purposes
     log_world = LogInfo(msg="Using world file: " + world_file)
     
+    # Set the GAZEBO_MODEL_PATH environment variable so Gazebo can find your models
+    set_gazebo_model_path = SetEnvironmentVariable(
+        name='GAZEBO_MODEL_PATH',
+        value=os.path.join(pkg_share, 'models')
+    )
+    
     # Launch Gazebo with the custom world file and the ROS factory plugin for ROS integration
     gazebo_process = ExecuteProcess(
         cmd=['gazebo', '--verbose', world_file, '-s', 'libgazebo_ros_factory.so'],
         output='screen'
     )
 
-    # Launch the line following controller node
+    # Launch the line following controller node with the name "line_following"
     line_following_node = Node(
         package='line_following',
         executable='controller',
@@ -61,6 +65,7 @@ def generate_launch_description():
 
     ld = LaunchDescription()
     ld.add_action(log_world)
+    ld.add_action(set_gazebo_model_path)
     ld.add_action(gazebo_process)
     ld.add_action(line_following_node)
     return ld
