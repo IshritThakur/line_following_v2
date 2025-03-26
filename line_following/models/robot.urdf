@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="line_follower_robot">
+<robot name="line_following_robot">
   <!-- Base link -->
   <link name="base_link">
     <visual>
