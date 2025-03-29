@@ -37,7 +37,9 @@
       </link>
     </model>
     
-    <!-- Include the robot model -->
+    <!-- Include the robot model.
+         Make sure your robot files (robot.urdf, model.config, meshes, etc.)
+         are placed in models/line_following_robot/ so that the URI matches: -->
     <include>
       <pose>-1 -2 0.01 0 0 0</pose>
       <uri>model://line_following_robot</uri>
