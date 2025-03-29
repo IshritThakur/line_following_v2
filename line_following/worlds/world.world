@@ -37,11 +37,10 @@
       </link>
     </model>
     
-    <!-- Include the robot model.
-         Make sure your robot files (robot.urdf, model.config, meshes, etc.)
-         are placed in models/line_following_robot/ so that the URI matches: -->
+    <!-- Include the robot model -->
     <include>
-      <pose>-1 -2 0.01 0 0 0</pose>
+      <!-- Spawn the robot on the track by setting x=0, y=0, z=0.01 -->
+      <pose>0 0 0.01 0 0 0</pose>
       <uri>model://line_following_robot</uri>
     </include>
   </world>

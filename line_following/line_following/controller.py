@@ -88,6 +88,12 @@ A ROS2 node to control a differential drive robot using camera input.
 It processes images to follow a line on a custom track.
 Inspired by previous implementations with updated parameters and logic.
 """
+#!/usr/bin/env python3
+"""
+A ROS2 node to control a differential drive robot using camera input.
+It processes images to follow a (black) line on a custom track.
+Inspired by previous implementations with updated parameters for black line detection.
+"""
 __author__ = "Your Name"
 
 import rclpy
@@ -104,43 +110,49 @@ import cv_bridge
 bridge = cv_bridge.CvBridge()
 
 # User-defined parameters (tweak these as needed)
-MIN_CONTOUR_AREA = 600      # Minimum area for any detected contour
-MIN_TRACK_AREA = 5500       # Minimum area for contour to be considered the main line
-FORWARD_SPEED = 0.25        # Forward speed (m/s)
-TURNING_FACTOR = 2.0/100    # Proportional turning factor (multiplied by error)
+MIN_CONTOUR_AREA = 200      # Minimum area for any detected contour
+MIN_TRACK_AREA   = 2000     # Minimum area for contour to be considered the main line
+FORWARD_SPEED    = 0.25     # Forward speed (m/s)
+TURNING_FACTOR   = 2.0/100  # Proportional turning factor (multiplied by error)
 LOST_LINE_MULTIPLIER = 1.3  # Multiplier when the line is momentarily lost
-TIMER_INTERVAL = 0.05       # Timer interval in seconds
+TIMER_INTERVAL   = 0.05     # Timer interval in seconds
 FINAL_COUNTDOWN_SEC = 3     # Duration to continue after final marker detection
 CENTER_TOLERANCE = 25       # Tolerance for error (in pixels)
 
-# Color range for line detection in BGR
-LINE_LOWER_BOUNDS = np.array([20, 30, 40])
-LINE_UPPER_BOUNDS = np.array([255, 255, 255])
+# For a black line, we use a low range of BGR values
+LINE_LOWER_BOUNDS = np.array([0, 0, 0])
+LINE_UPPER_BOUNDS = np.array([50, 50, 50])
 
 def crop_region(image_height, image_width):
     """
     Compute cropping boundaries for the image.
-    Returns (crop_top, crop_bottom, crop_left, crop_right)
+    Returns (crop_top, crop_bottom, crop_left, crop_right).
+    Currently cropping the bottom half, with some horizontal margin.
     """
-    return (image_height // 2, image_height, image_width // 5, 4 * image_width // 5)
+    return (
+        image_height // 2,  # top
+        image_height,       # bottom
+        image_width // 5,   # left
+        4 * image_width // 5 # right
+    )
 
 # Global variables for state management
-latest_image = None
-current_error = 0
-detected_line = False
-detected_marker = False
-should_drive = False
-marker_count = 0
-stop_countdown = None
+latest_image      = None
+current_error     = 0
+detected_line     = False
+detected_marker   = False
+should_drive      = False
+marker_count      = 0
+stop_countdown    = None
 
 def start_line_follower(request, response):
     """
     Service callback to start line following.
     """
     global should_drive, marker_count, stop_countdown
-    should_drive = True
-    marker_count = 0
-    stop_countdown = None
+    should_drive      = True
+    marker_count      = 0
+    stop_countdown    = None
     return response
 
 def stop_line_follower(request, response):
@@ -148,7 +160,7 @@ def stop_line_follower(request, response):
     Service callback to stop line following.
     """
     global should_drive, stop_countdown
-    should_drive = False
+    should_drive   = False
     stop_countdown = None
     return response
 
@@ -168,7 +180,7 @@ def process_contours(binary_mask, output_image, crop_x_offset):
     """
     contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     main_line = {}
-    marker = {}
+    marker   = {}
 
     for cnt in contours:
         moments = cv2.moments(cnt)
@@ -176,18 +188,20 @@ def process_contours(binary_mask, output_image, crop_x_offset):
             centroid_x = crop_x_offset + int(moments["m10"] / moments["m00"])
             centroid_y = int(moments["m01"] / moments["m00"])
             if moments['m00'] > MIN_TRACK_AREA:
+                # This contour is considered the track line
                 main_line['x'] = centroid_x
                 main_line['y'] = centroid_y
                 cv2.drawContours(output_image, [cnt], -1, (0, 255, 255), 2)
                 cv2.putText(output_image, f"{int(moments['m00'])}", (centroid_x, centroid_y),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
             else:
+                # This contour is considered a marker
                 if (not marker) or (marker.get('y', float('inf')) > centroid_y):
                     marker['x'] = centroid_x
                     marker['y'] = centroid_y
                     cv2.drawContours(output_image, [cnt], -1, (255, 0, 255), 2)
                     cv2.putText(output_image, f"{int(moments['m00'])}", (centroid_x, centroid_y),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 255), 2)
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 255), 2)
 
     if marker and main_line:
         marker_side = "right" if marker['x'] > main_line['x'] else "left"
@@ -200,15 +214,20 @@ def timer_callback():
     """
     Timer callback to process the image and publish velocity commands.
     """
-    global latest_image, current_error, detected_line, detected_marker, should_drive, marker_count, stop_countdown
+    global latest_image, current_error, detected_line, detected_marker
+    global should_drive, marker_count, stop_countdown
 
     if latest_image is None:
         return
 
     img_height, img_width, _ = latest_image.shape
     image_copy = latest_image.copy()
+
+    # Crop the region of interest
     crop_top, crop_bottom, crop_left, crop_right = crop_region(img_height, img_width)
     cropped_img = image_copy[crop_top:crop_bottom, crop_left:crop_right]
+
+    # Create a binary mask for the black line
     mask = cv2.inRange(cropped_img, LINE_LOWER_BOUNDS, LINE_UPPER_BOUNDS)
     main_line, marker_side = process_contours(mask, image_copy[crop_top:crop_bottom, crop_left:crop_right], crop_left)
     
@@ -221,6 +240,7 @@ def timer_callback():
         detected_line = True
         cv2.circle(image_copy, (main_line['x'], crop_top + main_line['y']), 5, (0, 255, 0), 7)
     else:
+        # If line is lost, stop forward motion, but keep turning to find it
         if detected_line:
             detected_line = False
             current_error *= LOST_LINE_MULTIPLIER
