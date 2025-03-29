@@ -55,17 +55,18 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Launch the line following controller node
+    # Launch the line following controller node, using simulation time
     line_following_node = Node(
         package='line_following',
         executable='controller',
         name='line_following',
-        output='screen'
+        output='screen',
+        parameters=[{'use_sim_time': True}]
     )
     
-    # Automatically call the start_line_follower service after 5 seconds
+    # Automatically call the start_line_follower service after 10 seconds
     start_service_call = TimerAction(
-        period=5.0,
+        period=10.0,
         actions=[
             ExecuteProcess(
                 cmd=['ros2', 'service', 'call', '/start_line_follower', 'std_srvs/srv/Empty', '{}'],
