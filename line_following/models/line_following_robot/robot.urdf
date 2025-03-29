@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="line_follower_robot">
+<robot name="line_following_robot">
   <!-- Base Link -->
   <link name="base_link">
     <visual>
@@ -99,6 +99,7 @@
   <!-- Gazebo Plugin for Differential Drive -->
   <gazebo>
     <plugin name="diff_drive_controller" filename="libgazebo_ros_diff_drive.so">
+      <!-- Updated joint names -->
       <left_wheel>left_wheel_joint</left_wheel>
       <right_wheel>right_wheel_joint</right_wheel>
       <wheel_separation>0.3</wheel_separation>

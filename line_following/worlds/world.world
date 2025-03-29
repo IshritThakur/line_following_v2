@@ -29,7 +29,6 @@
             </box>
           </geometry>
           <material>
-            <!-- Dark gray color for the track -->
             <ambient>0.2 0.2 0.2 1</ambient>
             <diffuse>0.2 0.2 0.2 1</diffuse>
           </material>
@@ -39,7 +38,7 @@
     
     <!-- Include the robot model -->
     <include>
-      <!-- Spawn the robot on the track by setting x=0, y=0, z=0.01 -->
+      <!-- Spawn the robot on the line; adjust the pose as needed -->
       <pose>0 0 0.01 0 0 0</pose>
       <uri>model://line_following_robot</uri>
     </include>

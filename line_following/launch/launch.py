@@ -55,7 +55,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Launch the line following controller node, using simulation time
+    # Launch the line following controller node (using sim time)
     line_following_node = Node(
         package='line_following',
         executable='controller',
