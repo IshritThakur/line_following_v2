@@ -32,7 +32,7 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess, LogInfo, SetEnvironmentVariable
+from launch.actions import ExecuteProcess, LogInfo, SetEnvironmentVariable, TimerAction
 from launch_ros.actions import Node
 
 def generate_launch_description():
@@ -49,7 +49,7 @@ def generate_launch_description():
         value=os.path.join(pkg_share, 'models')
     )
     
-    # Launch Gazebo with the custom world file and the ROS factory plugin for ROS integration
+    # Launch Gazebo with the custom world file and the ROS factory plugin
     gazebo_process = ExecuteProcess(
         cmd=['gazebo', '--verbose', world_file, '-s', 'libgazebo_ros_factory.so'],
         output='screen'
@@ -62,12 +62,24 @@ def generate_launch_description():
         name='line_following',
         output='screen'
     )
+    
+    # Automatically call the start_line_follower service after 5 seconds
+    start_service_call = TimerAction(
+        period=5.0,
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'service', 'call', '/start_line_follower', 'std_srvs/srv/Empty', '{}'],
+                output='screen'
+            )
+        ]
+    )
 
     ld = LaunchDescription()
     ld.add_action(log_world)
     ld.add_action(set_gazebo_model_path)
     ld.add_action(gazebo_process)
     ld.add_action(line_following_node)
+    ld.add_action(start_service_call)
     return ld
 
 if __name__ == '__main__':
