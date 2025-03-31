@@ -203,7 +203,7 @@
       <right_joint>right_wheel_joint</right_joint>
       <wheel_separation>0.3</wheel_separation>
       <wheel_diameter>0.2</wheel_diameter>
-      <torque>5</torque>
+      <torque>30</torque>
       <command_topic>cmd_vel</command_topic>
       <odom_topic>odom</odom_topic>
       <odom_frame>odom</odom_frame>
