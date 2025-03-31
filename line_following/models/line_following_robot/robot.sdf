@@ -105,7 +105,7 @@
       </visual>
     </link>
 
-    <!-- Camera Link -->
+    <!-- Camera Link with Sensor -->
     <link name="camera_link">
       <pose>0 0 0.15 0 0 0</pose>
       <inertial>
@@ -139,6 +139,30 @@
            <diffuse>0 0 1 1</diffuse>
          </material>
       </visual>
+      <!-- Add the Camera Sensor here -->
+      <sensor type="camera" name="camera_sensor">
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <camera>
+          <horizontal_fov>1.047</horizontal_fov>
+          <image>
+            <width>320</width>
+            <height>240</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>100</far>
+          </clip>
+        </camera>
+        <plugin name="gazebo_ros_camera" filename="libgazebo_ros_camera.so">
+          <ros>
+            <remapping>image_raw:=camera/image_raw</remapping>
+            <remapping>camera_info:=camera/camera_info</remapping>
+          </ros>
+          <frame_name>camera_link</frame_name>
+        </plugin>
+      </sensor>
     </link>
 
     <!-- Joints -->
@@ -190,9 +214,10 @@
     <!-- Joint State Publisher Plugin -->
     <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
       <update_rate>30</update_rate>
-      <!-- Add the joint names for which you want to publish states -->
-      <joint_name>left_wheel_joint</joint_name>
-      <joint_name>right_wheel_joint</joint_name>
+      <joint_names>
+        <joint_name>left_wheel_joint</joint_name>
+        <joint_name>right_wheel_joint</joint_name>
+      </joint_names>
     </plugin>
 
   </model>
