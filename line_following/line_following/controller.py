@@ -85,12 +85,6 @@
 #!/usr/bin/env python3
 """
 A ROS2 node to control a differential drive robot using camera input.
-It processes images to follow a line on a custom track.
-Inspired by previous implementations with updated parameters and logic.
-"""
-#!/usr/bin/env python3
-"""
-A ROS2 node to control a differential drive robot using camera input.
 It processes images to follow a (black) line on a custom track.
 Inspired by previous implementations with updated parameters for black line detection.
 """
@@ -165,11 +159,11 @@ def stop_line_follower(request, response):
     return response
 
 def image_callback(msg):
-    """
-    Callback to update the latest camera image.
-    """
     global latest_image
     latest_image = bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+    cv2.imshow("Processed Output", latest_image)
+    cv2.waitKey(5)
+
 
 def process_contours(binary_mask, output_image, crop_x_offset):
     """
