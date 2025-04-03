@@ -40,7 +40,7 @@
     <include>
       <!-- Adjust the pose as needed to place your track -->
       <pose>0 0 0 0 0 0</pose>
-      <uri>models://Track2</uri>
+      <uri>model://track2</uri>
     </include>
     
     <!-- Include the robot model -->
