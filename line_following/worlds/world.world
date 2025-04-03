@@ -35,6 +35,13 @@
         </visual>
       </link>
     </model>
+
+    <!-- Include the detailed track model -->
+    <include>
+      <!-- Adjust the pose as needed to place your track -->
+      <pose>0 0 0 0 0 0</pose>
+      <uri>model://Track2</uri>
+    </include>
     
     <!-- Include the robot model -->
     <include>
