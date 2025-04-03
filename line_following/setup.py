@@ -1,3 +1,57 @@
+# import os
+# from setuptools import find_packages, setup
+
+# package_name = 'line_following'
+
+# data_files = [
+#     ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
+#     ('share/' + package_name, ['package.xml']),
+# ]
+
+# def package_files(data_files, directory_list):
+#     paths_dict = {}
+#     for directory in directory_list:
+#         for (path, directories, filenames) in os.walk(directory):
+#             for filename in filenames:
+#                 file_path = os.path.join(path, filename)
+#                 install_path = os.path.join('share', package_name, path)
+#                 if install_path in paths_dict.keys():
+#                     paths_dict[install_path].append(file_path)
+#                 else:
+#                     paths_dict[install_path] = [file_path]
+#     for key in paths_dict.keys():
+#         data_files.append((key, paths_dict[key]))
+#     return data_files
+
+# # Optionally load a long description from your README.md (if available)
+# long_description = ""
+# readme_path = os.path.join(os.path.dirname(__file__), "README.md")
+# if os.path.exists(readme_path):
+#     with open(readme_path, "r", encoding="utf-8") as fh:
+#         long_description = fh.read()
+
+# setup(
+#     name=package_name,
+#     version='0.0.0',
+#     packages=find_packages(exclude=['test']),
+#     data_files=package_files(data_files, ['models/', 'launch/', 'worlds/', 'rviz/', 'config/', 'params/']),
+#     install_requires=['setuptools'],
+#     zip_safe=True,
+#     include_package_data=True,  # Added to ensure package data is included
+#     maintainer='user',
+#     maintainer_email='"user@todo.todo"',
+#     description='TODO: Package description',
+#     long_description=long_description,  # Added long description from README.md
+#     long_description_content_type='text/markdown',  # Specify content type for README
+#     license='TODO: License declaration',
+#     tests_require=['pytest'],
+#     entry_points={
+#         'console_scripts': [
+#             'controller = line_following.controller:main'
+#         ],
+#     },
+# )
+
 import os
 from setuptools import find_packages, setup
 
@@ -15,7 +69,7 @@ def package_files(data_files, directory_list):
             for filename in filenames:
                 file_path = os.path.join(path, filename)
                 install_path = os.path.join('share', package_name, path)
-                if install_path in paths_dict.keys():
+                if install_path in paths_dict:
                     paths_dict[install_path].append(file_path)
                 else:
                     paths_dict[install_path] = [file_path]
@@ -34,15 +88,15 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=find_packages(exclude=['test']),
-    data_files=package_files(data_files, ['models/', 'launch/', 'worlds/', 'rviz/', 'config/', 'params/']),
+    data_files=package_files(data_files, ['models', 'launch', 'worlds', 'rviz', 'config', 'params']),
     install_requires=['setuptools'],
     zip_safe=True,
-    include_package_data=True,  # Added to ensure package data is included
+    include_package_data=True,  # Ensure package data is included
     maintainer='user',
-    maintainer_email='"user@todo.todo"',
+    maintainer_email='user@todo.todo',
     description='TODO: Package description',
-    long_description=long_description,  # Added long description from README.md
-    long_description_content_type='text/markdown',  # Specify content type for README
+    long_description=long_description,  # Loaded from README.md if available
+    long_description_content_type='text/markdown',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
