@@ -1,3 +1,0 @@
-[console_scripts]
-controller = line_following.controller:main
-
