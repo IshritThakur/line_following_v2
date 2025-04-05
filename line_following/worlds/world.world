@@ -10,10 +10,10 @@
     </include>
 
     <!-- Custom line track model with modified dimensions -->
-    <model name="custom_line_track">
-      <static>true</static>
+    <!-- <model name="custom_line_track">
+      <static>true</static> -->
       <!-- Position the track slightly above the ground -->
-      <pose>0 0 0.02 0 0 0</pose>
+      <!-- <pose>0 0 0.02 0 0 0</pose>
       <link name="track_link">
         <collision name="collision">
           <geometry>
@@ -34,7 +34,7 @@
           </material>
         </visual>
       </link>
-    </model>
+    </model> -->
 
     <!-- Include the detailed track model -->
     <include>
