@@ -1,64 +1,175 @@
 <?xml version="1.0" encoding="utf-8"?>
-<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <asset>
     <contributor>
       <author>Your Name</author>
+      <authoring_tool>Blender 2.83.0</authoring_tool>
     </contributor>
-    <created>2025-03-26T00:00:00Z</created>
-    <modified>2025-03-26T00:00:00Z</modified>
+    <created>2025-04-06T00:00:00Z</created>
+    <modified>2025-04-06T00:00:00Z</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
+  
+  <!-- Camera Library (if needed later) -->
+  <library_cameras>
+    <camera id="Camera-camera" name="Camera">
+      <optics>
+        <technique_common>
+          <perspective>
+            <xfov sid="xfov">39.59775</xfov>
+            <aspect_ratio>1.777778</aspect_ratio>
+            <znear sid="znear">0.1</znear>
+            <zfar sid="zfar">100</zfar>
+          </perspective>
+        </technique_common>
+      </optics>
+      <extra>
+        <technique profile="blender">
+          <shiftx sid="shiftx" type="float">0</shiftx>
+          <shifty sid="shifty" type="float">0</shifty>
+          <dof_distance sid="dof_distance" type="float">10</dof_distance>
+        </technique>
+      </extra>
+    </camera>
+  </library_cameras>
+  
+  <!-- Light Library (if needed later) -->
+  <library_lights>
+    <light id="Light-light" name="Light">
+      <technique_common>
+        <point>
+          <color sid="color">1 1 1</color>
+          <constant_attenuation>1</constant_attenuation>
+          <linear_attenuation>0</linear_attenuation>
+          <quadratic_attenuation>0.001</quadratic_attenuation>
+        </point>
+      </technique_common>
+    </light>
+  </library_lights>
+  
+  <!-- Effects and Materials -->
+  <library_effects>
+    <effect id="Material-effect">
+      <profile_COMMON>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <ambient>
+              <color sid="ambient">0.2 0.2 0.2 1</color>
+            </ambient>
+            <diffuse>
+              <color sid="diffuse">0.8 0.8 0.8 1</color>
+            </diffuse>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_images/>
+  <library_materials>
+    <material id="Material-material" name="Material">
+      <instance_effect url="#Material-effect"/>
+    </material>
+  </library_materials>
+  
+  <!-- Detailed Geometry for the Chassis -->
   <library_geometries>
     <geometry id="waffle_pi_base-mesh" name="waffle_pi_base">
       <mesh>
-        <!-- Define 8 vertices for a box with dimensions: 1.0 x 0.6 x 0.1 m -->
-        <!-- Half-length = 0.5, half-width = 0.3, half-height = 0.05 -->
-        <source id="positions">
-          <float_array id="positions_array" count="24">
-            -0.5 -0.3  0.05   0.5 -0.3  0.05   0.5  0.3  0.05   -0.5  0.3  0.05
-            -0.5 -0.3 -0.05   0.5 -0.3 -0.05   0.5  0.3 -0.05   -0.5  0.3 -0.05
+        <!-- Define 8 vertices for a box chassis: size = 1.0 m x 0.6 m x 0.1 m -->
+        <!-- Top face at Z = +0.05, bottom face at Z = -0.05 -->
+        <source id="waffle_pi_base-mesh-positions">
+          <float_array id="waffle_pi_base-mesh-positions-array" count="24">
+            -0.5 -0.3  0.05  
+             0.5 -0.3  0.05  
+             0.5  0.3  0.05  
+            -0.5  0.3  0.05  
+            -0.5 -0.3 -0.05  
+             0.5 -0.3 -0.05  
+             0.5  0.3 -0.05  
+            -0.5  0.3 -0.05
           </float_array>
           <technique_common>
-            <accessor source="#positions_array" count="8" stride="3">
+            <accessor source="#waffle_pi_base-mesh-positions-array" count="8" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
             </accessor>
           </technique_common>
         </source>
-        <vertices id="vertices">
-          <input semantic="POSITION" source="#positions"/>
+        <!-- Normals for the 6 faces (one per face) -->
+        <source id="waffle_pi_base-mesh-normals">
+          <float_array id="waffle_pi_base-mesh-normals-array" count="18">
+            0 0 1   0 0 -1   0 -1 0   0 1 0   -1 0 0   1 0 0
+          </float_array>
+          <technique_common>
+            <accessor source="#waffle_pi_base-mesh-normals-array" count="6" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <!-- A simple UV map -->
+        <source id="waffle_pi_base-mesh-map-0">
+          <float_array id="waffle_pi_base-mesh-map-0-array" count="16">
+            0 0   1 0   1 1   0 1
+          </float_array>
+          <technique_common>
+            <accessor source="#waffle_pi_base-mesh-map-0-array" count="4" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="waffle_pi_base-mesh-vertices">
+          <input semantic="POSITION" source="#waffle_pi_base-mesh-positions"/>
         </vertices>
-        <!-- Define 12 triangles to cover the 6 faces of the box -->
-        <triangles count="12">
-          <input semantic="VERTEX" source="#vertices" offset="0"/>
+        <!-- Define 6 faces (one per side) using a polylist; each face as a quad -->
+        <polylist count="6">
+          <input semantic="VERTEX" source="#waffle_pi_base-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#waffle_pi_base-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#waffle_pi_base-mesh-map-0" offset="2" set="0"/>
+          <vcount>4 4 4 4 4 4</vcount>
           <p>
-            <!-- Top face (z = +0.05): V0,V1,V2 and V0,V2,V3 -->
-            0 1 2  0 2 3
-            <!-- Bottom face (z = -0.05): V4,V6,V5 and V4,V7,V6 
-                 (winding order reversed so normals point downward) -->
-            4 5 6  4 6 7
-            <!-- Front face (Y = -0.3): V0,V1,V5 and V0,V5,V4 -->
-            0 1 5  0 5 4
-            <!-- Back face (Y = +0.3): V3,V2,V6 and V3,V6,V7 -->
-            3 2 6  3 6 7
-            <!-- Left face (X = -0.5): V0,V3,V7 and V0,V7,V4 -->
-            0 3 7  0 7 4
-            <!-- Right face (X = +0.5): V1,V2,V6 and V1,V6,V5 -->
-            1 2 6  1 6 5
+            <!-- Top face (using vertices 0,1,2,3) -->
+            0 0 0  1 0 1  2 0 2  3 0 3
+            <!-- Bottom face (using vertices 4,5,6,7) -->
+            4 1 0  5 1 1  6 1 2  7 1 3
+            <!-- Front face (Y = -0.3: vertices 0,1,5,4) -->
+            0 2 0  1 2 1  5 2 2  4 2 3
+            <!-- Back face (Y = 0.3: vertices 3,2,6,7) -->
+            3 3 0  2 3 1  6 3 2  7 3 3
+            <!-- Left face (X = -0.5: vertices 0,3,7,4) -->
+            0 4 0  3 4 1  7 4 2  4 4 3
+            <!-- Right face (X = 0.5: vertices 1,2,6,5) -->
+            1 5 0  2 5 1  6 5 2  5 5 3
           </p>
-        </triangles>
+        </polylist>
       </mesh>
     </geometry>
   </library_geometries>
+  
+  <!-- Visual Scene instantiates the geometry with the material -->
   <library_visual_scenes>
-    <visual_scene id="Scene">
+    <visual_scene id="Scene" name="Scene">
       <node id="waffle_pi_base_node" name="waffle_pi_base">
-        <instance_geometry url="#waffle_pi_base-mesh"/>
+        <instance_geometry url="#waffle_pi_base-mesh">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Material-material" target="#Material-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
       </node>
     </visual_scene>
   </library_visual_scenes>
+  
   <scene>
     <instance_visual_scene url="#Scene"/>
   </scene>
