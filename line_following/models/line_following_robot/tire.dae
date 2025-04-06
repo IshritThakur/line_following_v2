@@ -12,12 +12,56 @@
   <library_geometries>
     <geometry id="tire-mesh" name="tire">
       <mesh>
+        <!-- 34 vertices: 
+             Index 0: Top center (0,0,0.01)
+             Indices 1..16: Top circle vertices (radius 0.05 at z=0.01)
+             Index 17: Bottom center (0,0,-0.01)
+             Indices 18..33: Bottom circle vertices (radius 0.05 at z=-0.01)
+             (Total: 34 * 3 = 102 float values)
+        -->
         <source id="positions">
-          <float_array id="positions_array" count="9">
-            -0.1 -0.1 0  0.1 -0.1 0  0.1 0.1 0
+          <float_array id="positions_array" count="102">
+            <!-- Top center -->
+            0.000 0.000 0.010 
+            <!-- Top circle (16 vertices) -->
+            0.050 0.000 0.010 
+            0.046 0.020 0.010 
+            0.035 0.035 0.010 
+            0.020 0.046 0.010 
+            0.000 0.050 0.010 
+            -0.020 0.046 0.010 
+            -0.035 0.035 0.010 
+            -0.046 0.020 0.010 
+            -0.050 0.000 0.010 
+            -0.046 -0.020 0.010 
+            -0.035 -0.035 0.010 
+            -0.020 -0.046 0.010 
+            0.000 -0.050 0.010 
+            0.020 -0.046 0.010 
+            0.035 -0.035 0.010 
+            0.046 -0.020 0.010 
+            <!-- Bottom center -->
+            0.000 0.000 -0.010 
+            <!-- Bottom circle (16 vertices) -->
+            0.050 0.000 -0.010 
+            0.046 0.020 -0.010 
+            0.035 0.035 -0.010 
+            0.020 0.046 -0.010 
+            0.000 0.050 -0.010 
+            -0.020 0.046 -0.010 
+            -0.035 0.035 -0.010 
+            -0.046 0.020 -0.010 
+            -0.050 0.000 -0.010 
+            -0.046 -0.020 -0.010 
+            -0.035 -0.035 -0.010 
+            -0.020 -0.046 -0.010 
+            0.000 -0.050 -0.010 
+            0.020 -0.046 -0.010 
+            0.035 -0.035 -0.010 
+            0.046 -0.020 -0.010
           </float_array>
           <technique_common>
-            <accessor source="#positions_array" count="3" stride="3">
+            <accessor source="#positions_array" count="34" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
@@ -27,10 +71,44 @@
         <vertices id="vertices">
           <input semantic="POSITION" source="#positions"/>
         </vertices>
-        <polylist count="1">
+        <!-- Top Face: fan from top center (index 0) to top circle vertices (indices 1..16) -->
+        <polylist material="top" count="16">
           <input semantic="VERTEX" source="#vertices" offset="0"/>
-          <vcount>3</vcount>
-          <p>0 1 2</p>
+          <vcount>3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3</vcount>
+          <p>
+            0 1 2  0 2 3  0 3 4  0 4 5  0 5 6  0 6 7  0 7 8  0 8 9 
+            0 9 10  0 10 11  0 11 12  0 12 13  0 13 14  0 14 15  0 15 16  0 16 1
+          </p>
+        </polylist>
+        <!-- Bottom Face: fan from bottom center (index 17) to bottom circle vertices (indices 18..33)
+             Winding order is reversed to orient the normal downward -->
+        <polylist material="bottom" count="16">
+          <input semantic="VERTEX" source="#vertices" offset="0"/>
+          <vcount>3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3</vcount>
+          <p>
+            17 19 18  17 20 19  17 21 20  17 22 21  17 23 22  17 24 23  17 25 24  17 26 25 
+            17 27 26  17 28 27  17 29 28  17 30 29  17 31 30  17 32 31  17 33 32  17 18 33
+          </p>
+        </polylist>
+        <!-- Side Faces: For each of the 16 segments, create 2 triangles -->
+        <polylist material="side" count="32">
+          <input semantic="VERTEX" source="#vertices" offset="0"/>
+          <!-- Each triangle has 3 vertices -->
+          <vcount>
+            3 3  3 3  3 3  3 3  3 3  3 3  3 3  3 3 
+            3 3  3 3  3 3  3 3  3 3  3 3  3 3  3 3 
+            3 3  3 3  3 3  3 3  3 3  3 3  3 3  3 3 
+            3 3  3 3
+          </vcount>
+          <p>
+            <!-- For each segment i from 1 to 16 (wrap around after 16) -->
+            <!-- Triangle 1: (top_i, bottom_i, top_next) -->
+            1 18 2  2 19 3  3 20 4  4 21 5  5 22 6  6 23 7  7 24 8  8 25 9 
+            9 26 10  10 27 11  11 28 12  12 29 13  13 30 14  14 31 15  15 32 16  16 33 1
+            <!-- Triangle 2: (top_next, bottom_i, bottom_next) -->
+            2 18 19  3 19 20  4 20 21  5 21 22  6 22 23  7 23 24  8 24 25  9 25 26 
+            10 26 27  11 27 28  12 28 29  13 29 30  14 30 31  15 31 32  16 32 33  1 33 18
+          </p>
         </polylist>
       </mesh>
     </geometry>

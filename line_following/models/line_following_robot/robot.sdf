@@ -322,6 +322,8 @@
       </sensor>
     </link>
 
+    <!-- LiDAR sensor (base_scan) is commented out because it is not used in this line following bot -->
+    <!--
     <link name="base_scan">    
       <inertial>
         <pose>-0.052 0 0.111 0 0 0</pose>
@@ -395,6 +397,7 @@
         </plugin>
       </sensor>
     </link>
+    -->
 
     <link name="wheel_left_link">
       <inertial>
@@ -587,14 +590,11 @@
     </link>
 
     <!-- Updated Camera Setup -->
-    <!-- Removed the empty "camera_link" by reconfiguring the camera mount -->
     <link name="camera_link">
-      <!-- This link now serves as the mounting point for the camera sensor.
-           Its pose will be defined by the joint from base_link. -->
+      <!-- This link serves as the mounting point for the camera sensor -->
     </link>
 
     <link name="camera_rgb_optical_frame">
-      <!-- Updated pose is now set to identity; the joint will define the desired offset -->
       <inertial>
         <pose>0 0 0 0 0 0</pose>
         <inertia>
@@ -638,7 +638,6 @@
     </link>
 
     <!-- Updated Joints for Camera Mounting -->
-    <!-- Joint from base_link to camera_link: sets the camera mount location -->
     <joint name="camera_joint" type="fixed">
       <parent>base_link</parent>
       <child>camera_link</child>
@@ -648,7 +647,6 @@
       </axis>
     </joint>
 
-    <!-- Joint from camera_link to camera_rgb_optical_frame: applies the downward tilt -->
     <joint name="camera_rgb_joint" type="fixed">
       <parent>camera_link</parent>
       <child>camera_rgb_optical_frame</child>
@@ -701,6 +699,8 @@
       </axis>
     </joint>    
 
+    <!-- Removed lidar_joint since base_scan is commented out -->
+    <!--
     <joint name="lidar_joint" type="fixed">
       <parent>base_link</parent>
       <child>base_scan</child>
@@ -709,6 +709,7 @@
         <xyz>0 0 1</xyz>
       </axis>
     </joint>
+    -->
 
     <plugin name="turtlebot3_diff_drive" filename="libgazebo_ros_diff_drive.so">
       <ros>

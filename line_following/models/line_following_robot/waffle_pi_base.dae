@@ -12,12 +12,15 @@
   <library_geometries>
     <geometry id="waffle_pi_base-mesh" name="waffle_pi_base">
       <mesh>
+        <!-- Define 8 vertices for a box with dimensions: 1.0 x 0.6 x 0.1 m -->
+        <!-- Half-length = 0.5, half-width = 0.3, half-height = 0.05 -->
         <source id="positions">
-          <float_array id="positions_array" count="9">
-            -0.5 -0.3 0  0.5 -0.3 0  0 0.3 0
+          <float_array id="positions_array" count="24">
+            -0.5 -0.3  0.05   0.5 -0.3  0.05   0.5  0.3  0.05   -0.5  0.3  0.05
+            -0.5 -0.3 -0.05   0.5 -0.3 -0.05   0.5  0.3 -0.05   -0.5  0.3 -0.05
           </float_array>
           <technique_common>
-            <accessor source="#positions_array" count="3" stride="3">
+            <accessor source="#positions_array" count="8" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
@@ -27,11 +30,25 @@
         <vertices id="vertices">
           <input semantic="POSITION" source="#positions"/>
         </vertices>
-        <polylist count="1">
+        <!-- Define 12 triangles to cover the 6 faces of the box -->
+        <triangles count="12">
           <input semantic="VERTEX" source="#vertices" offset="0"/>
-          <vcount>3</vcount>
-          <p>0 1 2</p>
-        </polylist>
+          <p>
+            <!-- Top face (z = +0.05): V0,V1,V2 and V0,V2,V3 -->
+            0 1 2  0 2 3
+            <!-- Bottom face (z = -0.05): V4,V6,V5 and V4,V7,V6 
+                 (winding order reversed so normals point downward) -->
+            4 5 6  4 6 7
+            <!-- Front face (Y = -0.3): V0,V1,V5 and V0,V5,V4 -->
+            0 1 5  0 5 4
+            <!-- Back face (Y = +0.3): V3,V2,V6 and V3,V6,V7 -->
+            3 2 6  3 6 7
+            <!-- Left face (X = -0.5): V0,V3,V7 and V0,V7,V4 -->
+            0 3 7  0 7 4
+            <!-- Right face (X = +0.5): V1,V2,V6 and V1,V6,V5 -->
+            1 2 6  1 6 5
+          </p>
+        </triangles>
       </mesh>
     </geometry>
   </library_geometries>
