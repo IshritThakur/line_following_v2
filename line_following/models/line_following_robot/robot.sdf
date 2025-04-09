@@ -32,15 +32,11 @@
         <pose>-0.064 0 0 0 0 0</pose>
         <geometry>
           <mesh>
-            <!-- Mesh URI updated to point to line_following_robot folder -->
-            <uri>model://line_following_robot/meshes/waffle_pi_base.dae</uri>
+            <!-- Updated mesh path for base -->
+            <uri>model://line_following_robot/waffle_pi_base.dae</uri>
             <scale>0.001 0.001 0.001</scale>
           </mesh>
         </geometry>
-        <material>
-          <ambient>0.5 0.5 0.5 1</ambient>
-          <diffuse>0.7 0.7 0.7 1</diffuse>
-        </material>
       </visual>
     </link>
 
@@ -103,15 +99,16 @@
       <inertial>
         <pose>0.0 0.144 0.023 -1.57 0 0</pose>
         <inertia>
-          <ixx>0.001</ixx>            
-          <ixy>0.000</ixy>            
-          <ixz>0.000</ixz>            
-          <iyy>0.001</iyy>            
-          <iyz>0.000</iyz>            
+          <ixx>0.001</ixx>
+          <ixy>0.000</ixy>
+          <ixz>0.000</ixz>
+          <iyy>0.001</iyy>
+          <iyz>0.000</iyz>
           <izz>0.001</izz>
         </inertia>
         <mass>0.1</mass>
       </inertial>
+
       <collision name="wheel_left_collision">
         <pose>0.0 0.144 0.023 -1.57 0 0</pose>
         <geometry>
@@ -121,7 +118,7 @@
           </cylinder>
         </geometry>
         <surface>
-          <!-- These friction parameters may not be accurate but are preserved -->
+          <!-- This friction parameter might not contain reliable data -->
           <friction>
             <ode>
               <mu>100000.0</mu>
@@ -143,19 +140,16 @@
           </contact>
         </surface>
       </collision>
+
       <visual name="wheel_left_visual">
         <pose>0.0 0.144 0.023 0 0 0</pose>
         <geometry>
           <mesh>
-            <!-- Mesh URI updated to point to line_following_robot -->
-            <uri>model://line_following_robot/meshes/tire.dae</uri>
+            <!-- Updated mesh path for tire -->
+            <uri>model://line_following_robot/tire.dae</uri>
             <scale>0.001 0.001 0.001</scale>
           </mesh>
         </geometry>
-        <material>
-          <ambient>0.3 0.3 0.3 1</ambient>
-          <diffuse>0.6 0.6 0.6 1</diffuse>
-        </material>
       </visual>
     </link>
 
@@ -163,15 +157,16 @@
       <inertial>
         <pose>0.0 -0.144 0.023 -1.57 0 0</pose>
         <inertia>
-          <ixx>0.001</ixx>            
-          <ixy>0.000</ixy>            
-          <ixz>0.000</ixz>            
-          <iyy>0.001</iyy>            
-          <iyz>0.000</iyz>            
+          <ixx>0.001</ixx>
+          <ixy>0.000</ixy>
+          <ixz>0.000</ixz>
+          <iyy>0.001</iyy>
+          <iyz>0.000</iyz>
           <izz>0.001</izz>
         </inertia>
         <mass>0.1</mass>
       </inertial>
+    
       <collision name="wheel_right_collision">
         <pose>0.0 -0.144 0.023 -1.57 0 0</pose>
         <geometry>
@@ -181,6 +176,7 @@
           </cylinder>
         </geometry>
         <surface>
+          <!-- This friction parameter might not contain reliable data -->
           <friction>
             <ode>
               <mu>100000.0</mu>
@@ -202,18 +198,16 @@
           </contact>
         </surface>
       </collision>
+
       <visual name="wheel_right_visual">
         <pose>0.0 -0.144 0.023 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://line_following_robot/meshes/tire.dae</uri>
+            <!-- Updated mesh path for tire -->
+            <uri>model://line_following_robot/tire.dae</uri>
             <scale>0.001 0.001 0.001</scale>
           </mesh>
         </geometry>
-        <material>
-          <ambient>0.3 0.3 0.3 1</ambient>
-          <diffuse>0.6 0.6 0.6 1</diffuse>
-        </material>
       </visual>
     </link>
 
@@ -223,10 +217,10 @@
         <mass>0.001</mass>
         <inertia>
           <ixx>0.00001</ixx>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
+          <ixy>0.000</ixy>
+          <ixz>0.000</ixz>
           <iyy>0.00001</iyy>
-          <iyz>0</iyz>
+          <iyz>0.000</iyz>
           <izz>0.00001</izz>
         </inertia>
       </inertial>
@@ -257,10 +251,10 @@
         <mass>0.001</mass>
         <inertia>
           <ixx>0.00001</ixx>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
+          <ixy>0.000</ixy>
+          <ixz>0.000</ixz>
           <iyy>0.00001</iyy>
-          <iyz>0</iyz>
+          <iyz>0.000</iyz>
           <izz>0.00001</izz>
         </inertia>
       </inertial>
@@ -286,28 +280,21 @@
     </link>
 
     <link name="camera_link"/>
-    
+
     <link name="camera_rgb_optical_frame">
       <inertial>
         <pose>0.076 0.0 0.093 0 0 0</pose>
         <inertia>
           <ixx>0.001</ixx>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
+          <ixy>0.000</ixy>
+          <ixz>0.000</ixz>
           <iyy>0.001</iyy>
-          <iyz>0</iyz>
+          <iyz>0.000</iyz>
           <izz>0.001</izz>
         </inertia>
         <mass>0.035</mass>
       </inertial>
-       <pose>0.076 0.0 0.093 0 0 0</pose>            
-       <geometry>            
-         <box>            
-           <size>0.008 0.130 0.022</size>            
-         </box>            
-       </geometry>            
-       </collision> -->            
-       <pose>0.05 0 0.25 0 1.0 0</pose> 
+      <pose>0.05 0 0.25 0 1.0 0</pose>
       <sensor name="camera" type="camera">
         <always_on>true</always_on>
         <visualize>true</visualize>
@@ -325,16 +312,14 @@
           </clip>
           <noise>
             <type>gaussian</type>
-            <!-- Noise is sampled per pixel -->
             <mean>0.0</mean>
             <stddev>0.007</stddev>
           </noise>
         </camera>
-        <plugin name="camera_driver" filename="libgazebo_ros_camera.so">
-          <ros>
-            <!-- Optional remappings can be set here -->
-          </ros>
-        </plugin>
+          <plugin name="camera_driver" filename="libgazebo_ros_camera.so">
+            <ros>
+            </ros>
+          </plugin>
       </sensor>
     </link>
     
@@ -392,7 +377,6 @@
 
     <plugin name="turtlebot3_diff_drive" filename="libgazebo_ros_diff_drive.so">
       <ros>
-        <!-- <namespace>/tb3</namespace> -->
       </ros>
       <update_rate>30</update_rate>
       <left_joint>wheel_left_joint</left_joint>
@@ -408,12 +392,10 @@
       <odometry_topic>odom</odometry_topic>
       <odometry_frame>odom</odometry_frame>
       <robot_base_frame>base_footprint</robot_base_frame>
-      <odometry_source>0</odometry_source>
     </plugin>
 
     <plugin name="turtlebot3_joint_state" filename="libgazebo_ros_joint_state_publisher.so">
       <ros>
-        <!-- <namespace>/tb3</namespace> -->
         <remapping>~/out:=joint_states</remapping>
       </ros>
       <update_rate>30</update_rate>
