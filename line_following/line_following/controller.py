@@ -359,7 +359,7 @@ class LineFollower(Node):
         ret, thresh = cv2.threshold(crop_img, 200, 255, cv2.THRESH_BINARY_INV)
 
         # For debugging: Enlarge the binary mask window for a better view.
-        mask_display = cv2.resize(thresh, (0, 0), fx=2.0, fy=2.0)
+        mask_display = cv2.resize(thresh, (0, 0), fx=1.0, fy=2.0)
         cv2.imshow("Binary Mask", mask_display)
         cv2.waitKey(5)
 
