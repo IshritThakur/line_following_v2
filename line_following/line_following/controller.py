@@ -377,7 +377,7 @@ class LineFollower(Node):
                 # Compute error: the difference between the centroid and the center of the image.
                 error = cx - (width / 2)
                 # Reduced forward speed to slow down the robot.
-                twist.linear.x = 0.1  
+                twist.linear.x = 0.05  
                 # Adjust turning factor (smaller factor yields smoother turns).
                 twist.angular.z = -float(error) / 150  
                 self.get_logger().info(f"Line detected. Error: {error}, Angular z: {twist.angular.z:.2f}")
