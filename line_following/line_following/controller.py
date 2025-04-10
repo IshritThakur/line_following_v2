@@ -223,6 +223,9 @@ def timer_callback():
 
     # Create a binary mask for the black line
     mask = cv2.inRange(cropped_img, LINE_LOWER_BOUNDS, LINE_UPPER_BOUNDS)
+    cv2.imshow("Binary Mask", mask)
+    cv2.waitKey(5)
+
     main_line, marker_side = process_contours(mask, image_copy[crop_top:crop_bottom, crop_left:crop_right], crop_left)
     
     cmd = Twist()
