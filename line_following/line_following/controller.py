@@ -343,44 +343,52 @@ class LineFollower(Node):
             self.get_logger().error(f"CvBridge Error: {e}")
             return
 
-        # Convert the image to grayscale and crop the lower part
+        # For debugging: Show a larger version of the camera feed.
+        # Increase the scale factor if you want an even bigger window.
+        scale_factor = 1.5
+        large_view = cv2.resize(cv_image, (0, 0), fx=scale_factor, fy=scale_factor)
+        cv2.imshow("Camera Feed", large_view)
+
+        # Convert the image to grayscale and crop the lower part of the image.
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         height, width = gray.shape
         crop_height = 100
         crop_img = gray[height - crop_height:height, 0:width]
 
-        # Apply binary threshold to highlight the line (THRESH_BINARY_INV so dark becomes white)
+        # Apply binary threshold (THRESH_BINARY_INV so that dark areas become white)
         ret, thresh = cv2.threshold(crop_img, 200, 255, cv2.THRESH_BINARY_INV)
 
-        # Display the binary mask for debugging
-        cv2.imshow("Binary Mask", thresh)
+        # For debugging: Enlarge the binary mask window for a better view.
+        mask_display = cv2.resize(thresh, (0, 0), fx=2.0, fy=2.0)
+        cv2.imshow("Binary Mask", mask_display)
         cv2.waitKey(5)
 
-        # Find contours in the thresholded image
+        # Find contours in the thresholded image.
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         twist = Twist()
         if contours:
-            # Choose the largest contour as the line
+            # Choose the largest contour as the line.
             c = max(contours, key=cv2.contourArea)
             M = cv2.moments(c)
             if M['m00'] != 0:
-                # Calculate the centroid of the contour
+                # Calculate the centroid of the contour.
                 cx = int(M['m10'] / M['m00'])
-                # Determine error: difference between the centroid's x coordinate and the image center
+                # Compute error: the difference between the centroid and the center of the image.
                 error = cx - (width / 2)
-                twist.linear.x = 0.2  # Constant forward speed
-                twist.angular.z = -float(error) / 100  # Proportional turning correction
+                # Reduced forward speed to slow down the robot.
+                twist.linear.x = 0.1  
+                # Adjust turning factor (smaller factor yields smoother turns).
+                twist.angular.z = -float(error) / 150  
                 self.get_logger().info(f"Line detected. Error: {error}, Angular z: {twist.angular.z:.2f}")
             else:
                 self.get_logger().warn("Zero moment, cannot compute centroid.")
         else:
-            # If no line is found, stop the robot
             self.get_logger().info("Line not found, stopping robot.")
             twist.linear.x = 0.0
             twist.angular.z = 0.0
 
-        # Publish the velocity command
+        # Publish the Twist message with the computed velocity command.
         self.publisher.publish(twist)
 
 def main(args=None):
