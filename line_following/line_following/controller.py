@@ -346,7 +346,7 @@ class LineFollower(Node):
         # For debugging: Show a larger version of the camera feed.
         # Increase the scale factor if you want an even bigger window.
         scale_factor = 1.5
-        large_view = cv2.resize(cv_image, (0, 0), fx=scale_factor, fy=scale_factor)
+        large_view = cv2.resize(cv_image, (0, 0), fx=1.0, fy=1.5)
         cv2.imshow("Camera Feed", large_view)
 
         # Convert the image to grayscale and crop the lower part of the image.
