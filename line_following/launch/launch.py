@@ -73,7 +73,7 @@ def generate_launch_description():
             '-entity', 'robot2',
             '-robot_namespace', 'robot2',
             '-file', os.path.join(pkg_share, 'models', 'robot2.sdf'),
-            '-x', '3', '-y', '2', '-z', '0.01'
+            '-x', '1', '-y', '0', '-z', '0.01'
         ],
         output='screen'
     )
