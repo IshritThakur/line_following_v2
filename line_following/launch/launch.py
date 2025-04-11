@@ -39,32 +39,34 @@ def generate_launch_description():
     pkg_share = get_package_share_directory('line_following')
     world_file = os.path.join(pkg_share, 'worlds', 'world.world')
     
+    # Log world file path for debugging.
     log_world = LogInfo(msg="Using world file: " + world_file)
     
+    # Set GAZEBO_MODEL_PATH so Gazebo can find your models.
     set_gazebo_model_path = SetEnvironmentVariable(
         name='GAZEBO_MODEL_PATH',
         value=os.path.join(pkg_share, 'models')
     )
     
-    # Launch Gazebo with the specified world and factory plugin.
+    # Launch Gazebo with your world file and factory plugin.
     gazebo_process = ExecuteProcess(
         cmd=['gazebo', '--verbose', world_file, '-s', 'libgazebo_ros_factory.so'],
         output='screen'
     )
     
-    # Spawn robot1 at (0, 0, 0.01)
-    spawn_robot1 = ExecuteProcess(
+    # Spawn first robot ("robot") at (0, 0, 0.01)
+    spawn_robot = ExecuteProcess(
         cmd=[
             'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
-            '-entity', 'robot1',
-            '-robot_namespace', 'robot1',
+            '-entity', 'robot',
+            '-robot_namespace', 'robot',
             '-file', os.path.join(pkg_share, 'models', 'robot.sdf'),
             '-x', '0', '-y', '0', '-z', '0.01'
         ],
         output='screen'
     )
     
-    # Spawn robot2 at (3, 2, 0.01)
+    # Spawn second robot ("robot2") at (3, 2, 0.01)
     spawn_robot2 = ExecuteProcess(
         cmd=[
             'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
@@ -76,39 +78,40 @@ def generate_launch_description():
         output='screen'
     )
     
-    # Launch the line following controller node for robot1.
-    line_following_node_robot1 = Node(
+    # Launch controller node for robot1.
+    # Note: The controller subscribes to "camera/image_raw" (relative topic),
+    # so in the namespace "robot" it will resolve to "/robot/camera/image_raw".
+    controller_robot1 = Node(
         package='line_following',
         executable='controller',
-        name='line_following',
-        namespace='robot1',
+        name='controller',
+        namespace='robot',
         output='screen',
         parameters=[{'use_sim_time': True}]
     )
     
-    # Launch the line following controller node for robot2.
-    line_following_node_robot2 = Node(
+    # Launch controller node for robot2.
+    controller_robot2 = Node(
         package='line_following',
         executable='controller',
-        name='line_following',
+        name='controller',
         namespace='robot2',
         output='screen',
         parameters=[{'use_sim_time': True}]
     )
     
-    # Automatically call the start_line_follower service for robot1 after 10 seconds.
-    start_service_call_robot1 = TimerAction(
+    # Call the start_line_follower service for each robot after a 10-second delay.
+    start_service_robot1 = TimerAction(
         period=10.0,
         actions=[
             ExecuteProcess(
-                cmd=['ros2', 'service', 'call', '/robot1/start_line_follower', 'std_srvs/srv/Empty', '{}'],
+                cmd=['ros2', 'service', 'call', '/robot/start_line_follower', 'std_srvs/srv/Empty', '{}'],
                 output='screen'
             )
         ]
     )
     
-    # Automatically call the start_line_follower service for robot2 after 10 seconds.
-    start_service_call_robot2 = TimerAction(
+    start_service_robot2 = TimerAction(
         period=10.0,
         actions=[
             ExecuteProcess(
@@ -122,12 +125,12 @@ def generate_launch_description():
     ld.add_action(log_world)
     ld.add_action(set_gazebo_model_path)
     ld.add_action(gazebo_process)
-    ld.add_action(spawn_robot1)
+    ld.add_action(spawn_robot)
     ld.add_action(spawn_robot2)
-    ld.add_action(line_following_node_robot1)
-    ld.add_action(line_following_node_robot2)
-    ld.add_action(start_service_call_robot1)
-    ld.add_action(start_service_call_robot2)
+    ld.add_action(controller_robot1)
+    ld.add_action(controller_robot2)
+    ld.add_action(start_service_robot1)
+    ld.add_action(start_service_robot2)
     
     return ld
 
