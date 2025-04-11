@@ -125,7 +125,7 @@ def generate_launch_description():
     ld.add_action(log_world)
     ld.add_action(set_gazebo_model_path)
     ld.add_action(gazebo_process)
-    ld.add_action(spawn_robot)
+    ld.add_action(spawn_robot1)
     ld.add_action(spawn_robot2)
     ld.add_action(controller_robot1)
     ld.add_action(controller_robot2)
