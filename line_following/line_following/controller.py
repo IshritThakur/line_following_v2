@@ -90,17 +90,8 @@
 
 
 
+# CONTROLLER V2.0
 
-
-
-
-#!/usr/bin/env python3
-# """
-# A ROS2 node to control a differential drive robot using camera input.
-# It processes images to follow a (black) line on a custom track.
-# Inspired by previous implementations with updated parameters for black line detection.
-# """
-# __author__ = "Your Name"
 
 # import rclpy
 # from rclpy.node import Node
@@ -311,6 +302,9 @@
 #         rclpy.shutdown()
 
 
+
+
+# CONTROLLER V3.0
 
 
 import rclpy
