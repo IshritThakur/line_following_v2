@@ -88,6 +88,7 @@
         </imu>
         <plugin name="turtlebot3_imu" filename="libgazebo_ros_imu_sensor.so">
           <ros>
+            <!-- <namespace>/tb3</namespace> -->
             <remapping>~/out:=imu</remapping>
           </ros>
         </plugin>
@@ -107,6 +108,7 @@
         </inertia>
         <mass>0.1</mass>
       </inertial>
+
       <collision name="wheel_left_collision">
         <pose>0.0 0.144 0.023 -1.57 0 0</pose>
         <geometry>
@@ -116,6 +118,7 @@
           </cylinder>
         </geometry>
         <surface>
+          <!-- This friction parameter might not contain reliable data -->
           <friction>
             <ode>
               <mu>100000.0</mu>
@@ -137,6 +140,7 @@
           </contact>
         </surface>
       </collision>
+
       <visual name="wheel_left_visual">
         <pose>0.0 0.144 0.023 0 0 0</pose>
         <geometry>
@@ -172,6 +176,7 @@
           </cylinder>
         </geometry>
         <surface>
+          <!-- This friction parameter might not contain reliable data -->
           <friction>
             <ode>
               <mu>100000.0</mu>
@@ -193,6 +198,7 @@
           </contact>
         </surface>
       </collision>
+
       <visual name="wheel_right_visual">
         <pose>0.0 -0.144 0.023 0 0 0</pose>
         <geometry>
@@ -310,13 +316,10 @@
             <stddev>0.007</stddev>
           </noise>
         </camera>
-        <!-- Updated camera plugin with relative topic remappings only -->
-        <plugin name="camera_driver" filename="libgazebo_ros_camera.so">
-          <ros>
-            <remapping>image_raw:=camera/image_raw</remapping>
-            <remapping>camera_info:=camera/camera_info</remapping>
-          </ros>
-        </plugin>
+          <plugin name="camera_driver" filename="libgazebo_ros_camera.so">
+            <ros>
+            </ros>
+          </plugin>
       </sensor>
     </link>
     
