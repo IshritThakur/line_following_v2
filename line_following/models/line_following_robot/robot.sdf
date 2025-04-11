@@ -317,9 +317,11 @@
           </noise>
         </camera>
           <plugin name="camera_driver" filename="libgazebo_ros_camera.so">
-            <ros>
-            </ros>
-          </plugin>
+          <ros>
+            <remapping>image_raw:=camera/image_raw</remapping>
+            <remapping>camera_info:=camera/camera_info</remapping>
+          </ros>
+        </plugin>
       </sensor>
     </link>
     
