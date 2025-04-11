@@ -323,7 +323,7 @@ class LineFollower(Node):
         # Subscribe to the camera image topic
         self.subscription = self.create_subscription(
             Image,
-            '/camera/image_raw',
+            'camera/image_raw',
             self.image_callback,
             10)
         # Publisher for velocity commands
