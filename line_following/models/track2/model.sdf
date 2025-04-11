@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.5">
-  <model name="line_following_robot">  
+  <model name="line_following_robot_template">
     <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
 
     <link name="base_footprint"/>
@@ -88,7 +88,7 @@
         </imu>
         <plugin name="turtlebot3_imu" filename="libgazebo_ros_imu_sensor.so">
           <ros>
-            <!-- No namespace remapping here -->
+            <!-- Remapping remains unchanged -->
             <remapping>~/out:=imu</remapping>
           </ros>
         </plugin>
@@ -108,6 +108,7 @@
         </inertia>
         <mass>0.1</mass>
       </inertial>
+
       <collision name="wheel_left_collision">
         <pose>0.0 0.144 0.023 -1.57 0 0</pose>
         <geometry>
@@ -138,11 +139,11 @@
           </contact>
         </surface>
       </collision>
+
       <visual name="wheel_left_visual">
         <pose>0.0 0.144 0.023 0 0 0</pose>
         <geometry>
           <mesh>
-            <!-- Updated mesh path for tire -->
             <uri>model://line_following_robot/tire.dae</uri>
             <scale>0.001 0.001 0.001</scale>
           </mesh>
@@ -163,6 +164,7 @@
         </inertia>
         <mass>0.1</mass>
       </inertial>
+    
       <collision name="wheel_right_collision">
         <pose>0.0 -0.144 0.023 -1.57 0 0</pose>
         <geometry>
@@ -193,11 +195,11 @@
           </contact>
         </surface>
       </collision>
+
       <visual name="wheel_right_visual">
         <pose>0.0 -0.144 0.023 0 0 0</pose>
         <geometry>
           <mesh>
-            <!-- Updated mesh path for tire -->
             <uri>model://line_following_robot/tire.dae</uri>
             <scale>0.001 0.001 0.001</scale>
           </mesh>
@@ -310,10 +312,9 @@
             <stddev>0.007</stddev>
           </noise>
         </camera>
-        <!-- Updated camera plugin with relative namespace and remappings -->
+        <!-- Removed the invalid namespace tag -->
         <plugin name="camera_driver" filename="libgazebo_ros_camera.so">
           <ros>
-            <namespace>~</namespace>
             <remapping>image_raw:=camera/image_raw</remapping>
             <remapping>camera_info:=camera/camera_info</remapping>
           </ros>
