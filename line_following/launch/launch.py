@@ -55,24 +55,24 @@ def generate_launch_description():
     )
     
     # Spawn first robot ("robot") at (0, 0, 0.01)
-    spawn_robot = ExecuteProcess(
+    spawn_robot1 = ExecuteProcess(
         cmd=[
             'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
-            '-entity', 'robot',
-            '-robot_namespace', 'robot',
+            '-entity', 'robot1',
+            '-robot_namespace', 'robot1',
             '-file', os.path.join(pkg_share, 'models', 'robot.sdf'),
             '-x', '0', '-y', '0', '-z', '0.01'
-        ],
+         ],
         output='screen'
     )
-    
-    # Spawn second robot ("robot2") at (3, 2, 0.01)
+
+    # Spawn the second robot using robot2.sdf (for "robot2")
     spawn_robot2 = ExecuteProcess(
         cmd=[
             'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
             '-entity', 'robot2',
             '-robot_namespace', 'robot2',
-            '-file', os.path.join(pkg_share, 'models', 'robot.sdf'),
+            '-file', os.path.join(pkg_share, 'models', 'robot2.sdf'),
             '-x', '3', '-y', '2', '-z', '0.01'
         ],
         output='screen'
