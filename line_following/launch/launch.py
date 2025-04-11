@@ -54,7 +54,7 @@ def generate_launch_description():
         output='screen'
     )
     
-    # Spawn robot1 using the Gazebo spawn_entity node
+    # Spawn robot1 using the Gazebo spawn_entity node (at location 0,0,0.01)
     spawn_robot1 = ExecuteProcess(
         cmd=[
             'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
@@ -66,26 +66,25 @@ def generate_launch_description():
         output='screen'
     )
     
-    # Spawn robot2 using the Gazebo spawn_entity node
+    # Spawn robot2 using the Gazebo spawn_entity node (spawned farther apart, e.g., at 4,0,0.01)
     spawn_robot2 = ExecuteProcess(
         cmd=[
             'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
             '-entity', 'robot2',
             '-robot_namespace', 'robot2',
             '-file', os.path.join(pkg_share, 'models', 'robot.sdf'),
-            '-x', '2', '-y', '0', '-z', '0.01'
+            '-x', '4', '-y', '0', '-z', '0.01'
         ],
         output='screen'
     )
     
-    # Start robot_state_publisher for robot1
-    # Assumes you have a URDF file named "robot.urdf" in your models folder.
+    # Start robot_state_publisher for robot1 using a URDF file (if available)
     urdf_file = os.path.join(pkg_share, 'models', 'robot.urdf')
     if os.path.exists(urdf_file):
         with open(urdf_file, 'r') as infp:
             robot_description = infp.read()
     else:
-        robot_description = ""  # Or convert your SDF to URDF if needed.
+        robot_description = ""  # Or leave empty if not available.
     
     rsp_robot1 = Node(
         package='robot_state_publisher',
