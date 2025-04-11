@@ -40,7 +40,6 @@ def generate_launch_description():
     # Use the custom world file from the package's "worlds" folder (named "world.world")
     world_file = os.path.join(pkg_share, 'worlds', 'world.world')
     
-    # Log the world file path for debugging purposes
     log_world = LogInfo(msg="Using world file: " + world_file)
     
     # Set the GAZEBO_MODEL_PATH environment variable so Gazebo can find your models
@@ -54,33 +53,83 @@ def generate_launch_description():
         cmd=['gazebo', '--verbose', world_file, '-s', 'libgazebo_ros_factory.so'],
         output='screen'
     )
-
-    # Launch the line following controller node (using sim time)
-    line_following_node = Node(
+    
+    # Spawn robot1 using the Gazebo spawn_entity node
+    spawn_robot1 = ExecuteProcess(
+        cmd=[
+            'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
+            '-entity', 'robot1',
+            '-robot_namespace', 'robot1',
+            '-file', os.path.join(pkg_share, 'models', 'robot.sdf'),
+            '-x', '0', '-y', '0', '-z', '0.01'
+        ],
+        output='screen'
+    )
+    
+    # Spawn robot2 using the Gazebo spawn_entity node
+    spawn_robot2 = ExecuteProcess(
+        cmd=[
+            'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
+            '-entity', 'robot2',
+            '-robot_namespace', 'robot2',
+            '-file', os.path.join(pkg_share, 'models', 'robot.sdf'),
+            '-x', '2', '-y', '0', '-z', '0.01'
+        ],
+        output='screen'
+    )
+    
+    # Launch line following controller for robot1
+    line_following_node_robot1 = Node(
         package='line_following',
         executable='controller',
         name='line_following',
+        namespace='robot1',
         output='screen',
         parameters=[{'use_sim_time': True}]
     )
     
-    # Automatically call the start_line_follower service after 10 seconds
-    start_service_call = TimerAction(
+    # Launch line following controller for robot2
+    line_following_node_robot2 = Node(
+        package='line_following',
+        executable='controller',
+        name='line_following',
+        namespace='robot2',
+        output='screen',
+        parameters=[{'use_sim_time': True}]
+    )
+    
+    # Automatically call the start_line_follower service for each robot after 10 seconds
+    start_service_call_robot1 = TimerAction(
         period=10.0,
         actions=[
             ExecuteProcess(
-                cmd=['ros2', 'service', 'call', '/start_line_follower', 'std_srvs/srv/Empty', '{}'],
+                cmd=['ros2', 'service', 'call', '/robot1/start_line_follower', 'std_srvs/srv/Empty', '{}'],
                 output='screen'
             )
         ]
     )
-
+    
+    start_service_call_robot2 = TimerAction(
+        period=10.0,
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'service', 'call', '/robot2/start_line_follower', 'std_srvs/srv/Empty', '{}'],
+                output='screen'
+            )
+        ]
+    )
+    
     ld = LaunchDescription()
     ld.add_action(log_world)
     ld.add_action(set_gazebo_model_path)
     ld.add_action(gazebo_process)
-    ld.add_action(line_following_node)
-    ld.add_action(start_service_call)
+    ld.add_action(spawn_robot1)
+    ld.add_action(spawn_robot2)
+    ld.add_action(line_following_node_robot1)
+    ld.add_action(line_following_node_robot2)
+    ld.add_action(start_service_call_robot1)
+    ld.add_action(start_service_call_robot2)
+    
     return ld
 
 if __name__ == '__main__':
