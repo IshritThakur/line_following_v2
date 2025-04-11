@@ -78,6 +78,33 @@ def generate_launch_description():
         output='screen'
     )
     
+    # Start robot_state_publisher for robot1
+    # Assumes you have a URDF file named "robot.urdf" in your models folder.
+    urdf_file = os.path.join(pkg_share, 'models', 'robot.urdf')
+    if os.path.exists(urdf_file):
+        with open(urdf_file, 'r') as infp:
+            robot_description = infp.read()
+    else:
+        robot_description = ""  # Or convert your SDF to URDF if needed.
+    
+    rsp_robot1 = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='robot1',
+        name='robot_state_publisher',
+        output='screen',
+        parameters=[{'robot_description': robot_description}]
+    )
+    
+    rsp_robot2 = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='robot2',
+        name='robot_state_publisher',
+        output='screen',
+        parameters=[{'robot_description': robot_description}]
+    )
+    
     # Launch line following controller for robot1
     line_following_node_robot1 = Node(
         package='line_following',
@@ -125,6 +152,8 @@ def generate_launch_description():
     ld.add_action(gazebo_process)
     ld.add_action(spawn_robot1)
     ld.add_action(spawn_robot2)
+    ld.add_action(rsp_robot1)
+    ld.add_action(rsp_robot2)
     ld.add_action(line_following_node_robot1)
     ld.add_action(line_following_node_robot2)
     ld.add_action(start_service_call_robot1)
