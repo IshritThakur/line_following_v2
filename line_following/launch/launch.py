@@ -59,7 +59,7 @@ def generate_launch_description():
     with open(yaml_file, 'r') as f:
         poses = yaml.safe_load(f)
     # Use configuration "2"
-    robot_configs = poses["2"]
+    robot_configs = poses[2]
 
     group_actions = []
     start_service_actions = []
