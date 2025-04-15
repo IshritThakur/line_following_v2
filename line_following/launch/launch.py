@@ -38,40 +38,29 @@ from launch_ros.actions import Node, PushRosNamespace
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('line_following')
-    # World file
     world_file = os.path.join(pkg_share, 'worlds', 'world.world')
     log_world = LogInfo(msg="Using world file: " + world_file)
-
-    # Set Gazebo model path
     set_gazebo_model_path = SetEnvironmentVariable(
         name='GAZEBO_MODEL_PATH',
         value=os.path.join(pkg_share, 'models')
     )
-
-    # Launch Gazebo with world file and factory plugin
     gazebo_process = ExecuteProcess(
         cmd=['gazebo', '--verbose', world_file, '-s', 'libgazebo_ros_factory.so'],
         output='screen'
     )
-
-    # Load initial poses from YAML file
     yaml_file = os.path.join(pkg_share, 'config', 'initial_poses.yaml')
     with open(yaml_file, 'r') as f:
         poses = yaml.safe_load(f)
-    # Use configuration "2"
     robot_configs = poses[2]
 
     group_actions = []
     start_service_actions = []
 
     for robot_name, pose in robot_configs.items():
-        # Decide which SDF file to use based on the robot name.
-        sdf_filename = 'robot.sdf'
-        if robot_name.lower() == 'robot2':
-            sdf_filename = 'robot2.sdf'
+        sdf_filename = f"{robot_name}.sdf"
         sdf_path = os.path.join(pkg_share, 'models', sdf_filename)
+        print(f"Spawning {robot_name} from file {sdf_path} with pose {pose}")
 
-        # Create spawn command with parameters from YAML.
         spawn_robot = ExecuteProcess(
             cmd=[
                 'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
@@ -86,7 +75,6 @@ def generate_launch_description():
             output='screen'
         )
 
-        # Create controller node (ensure your controller subscribes to relative topics)
         controller_node = Node(
             package='line_following',
             executable='controller',
@@ -96,7 +84,6 @@ def generate_launch_description():
             parameters=[{'use_sim_time': True}]
         )
 
-        # Combine spawn and controller node under the robot namespace
         group = GroupAction([
             PushRosNamespace(robot_name),
             spawn_robot,
@@ -104,7 +91,6 @@ def generate_launch_description():
         ])
         group_actions.append(group)
 
-        # Create a timer action to call the start_line_follower service for this robot.
         start_service = TimerAction(
             period=10.0,
             actions=[
