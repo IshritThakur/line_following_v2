@@ -318,16 +318,21 @@ import numpy as np
 
 class LineFollower(Node):
     def __init__(self):
+        # The node name remains 'line_following'. It will be remapped to a specific
+        # namespace using your launch file.
         super().__init__('line_following')
         self.get_logger().info('Line follower node started.')
-        # Subscribe to the camera image topic
+
+        # Subscribe to the camera image topic (a relative topic will resolve to e.g. /robot1/camera/image_raw)
         self.subscription = self.create_subscription(
             Image,
             'camera/image_raw',
             self.image_callback,
             10)
-        # Publisher for velocity commands
-        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+        
+        # Publisher for velocity commands on a relative topic "cmd_vel"
+        # This ensures that under a namespace, it will resolve to e.g. /robot1/cmd_vel.
+        self.publisher = self.create_publisher(Twist, 'cmd_vel', 10)
         self.bridge = CvBridge()
 
     def image_callback(self, msg):
