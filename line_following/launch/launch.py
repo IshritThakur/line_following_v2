@@ -159,7 +159,7 @@ def generate_launch_description():
             'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
             '-entity', 'line_following_robot',
             '-robot_namespace', 'line_following_robot',
-            '-file', os.path.join(pkg_share, 'models', 'line_following', 'robot.sdf'),
+            '-file', os.path.join(pkg_share, 'models', 'line_following_robot', 'robot.sdf'),
             '-x', '0', '-y', '0', '-z', '0.01'
         ],
         output='screen'
