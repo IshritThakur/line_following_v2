@@ -138,6 +138,8 @@ def generate_launch_description():
     world_file = os.path.join(pkg_share, 'worlds', 'world.world')
 
     log_world = LogInfo(msg="Using world file: " + world_file)
+    log_model_path = LogInfo(
+    msg="Using model file: " + os.path.join(pkg_share, 'models', 'line_following_robot', 'robot.sdf'))
 
 
     set_gazebo_model_path = SetEnvironmentVariable(
@@ -157,7 +159,7 @@ def generate_launch_description():
             'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
             '-entity', 'line_following_robot',
             '-robot_namespace', 'line_following_robot',
-            '-file', os.path.join(pkg_share, 'models', 'robot.sdf'),
+            '-file', os.path.join(pkg_share, 'models', 'line_following', 'robot.sdf'),
             '-x', '0', '-y', '0', '-z', '0.01'
         ],
         output='screen'
@@ -186,6 +188,7 @@ def generate_launch_description():
 
     ld = LaunchDescription()
     ld.add_action(log_world)
+    ld.add_action(log_model_path)
     ld.add_action(set_gazebo_model_path)
     ld.add_action(gazebo_process)
     ld.add_action(spawn_robot)
