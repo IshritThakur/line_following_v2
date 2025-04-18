@@ -306,8 +306,98 @@
 
 
 # CONTROLLER V3.0
+# REVERT TO THIS AFTER SS
+# import rclpy
+# from rclpy.node import Node
+# from sensor_msgs.msg import Image
+# from geometry_msgs.msg import Twist
+# from cv_bridge import CvBridge, CvBridgeError
+# import cv2
+# import numpy as np
+
+# class LineFollower(Node):
+#     def __init__(self):
+#         # The node name remains 'line_following'. It will be remapped to a specific
+#         # namespace using your launch file.
+#         super().__init__('line_following')
+#         self.get_logger().info('Line follower node started.')
+
+#         # Subscribe to the camera image topic (a relative topic will resolve to e.g. /robot1/camera/image_raw)
+#         self.subscription = self.create_subscription(
+#             Image,
+#             'camera/image_raw',
+#             self.image_callback,
+#             10)
+        
+#         # Publisher for velocity commands on a relative topic "cmd_vel"
+#         # This ensures that under a namespace, it will resolve to e.g. /robot1/cmd_vel.
+#         self.publisher = self.create_publisher(Twist, 'cmd_vel', 10)
+#         self.bridge = CvBridge()
+
+#     def image_callback(self, msg):
+#         try:
+#             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+#         except CvBridgeError as e:
+#             self.get_logger().error(f"CvBridge Error: {e}")
+#             return
+
+#         # For debugging: show a resized camera feed.
+#         large_view = cv2.resize(cv_image, (0, 0), fx=1.0, fy=1.5)
+#         cv2.imshow("Camera Feed", large_view)
+
+#         # Process the image: convert to grayscale and crop the lower part.
+#         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+#         height, width = gray.shape
+#         crop_height = 100
+#         crop_img = gray[height - crop_height:height, 0:width]
+
+#         # Apply a binary threshold (inverting so that dark line appears white)
+#         ret, thresh = cv2.threshold(crop_img, 200, 255, cv2.THRESH_BINARY_INV)
+
+#         # For debugging: enlarge the binary mask window.
+#         mask_display = cv2.resize(thresh, (0, 0), fx=1.0, fy=2.0)
+#         cv2.imshow("Binary Mask", mask_display)
+#         cv2.waitKey(5)
+
+#         # Find contours in the threshold image.
+#         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+#         twist = Twist()
+#         if contours:
+#             # Choose the largest contour as the line.
+#             c = max(contours, key=cv2.contourArea)
+#             M = cv2.moments(c)
+#             if M['m00'] != 0:
+#                 cx = int(M['m10'] / M['m00'])
+#                 error = cx - (width / 2)
+#                 twist.linear.x = 0.05  # Reduced forward speed
+#                 twist.angular.z = -float(error) / 150
+#                 self.get_logger().info(f"Line detected. Error: {error}, Angular z: {twist.angular.z:.2f}")
+#             else:
+#                 self.get_logger().warn("Zero moment, cannot compute centroid.")
+#         else:
+#             self.get_logger().info("Line not found, stopping robot.")
+#             twist.linear.x = 0.0
+#             twist.angular.z = 0.0
+
+#         self.publisher.publish(twist)
+
+# def main(args=None):
+#     rclpy.init(args=args)
+#     node = LineFollower()
+#     try:
+#         rclpy.spin(node)
+#     except KeyboardInterrupt:
+#         pass
+#     node.destroy_node()
+#     rclpy.shutdown()
+
+# if __name__ == '__main__':
+#     main()
 
 
+
+# CONTROLLER V4.0
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -315,25 +405,72 @@ from geometry_msgs.msg import Twist
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
+import math
+import tf2_ros
+from tf2_ros import TransformException
 
 class LineFollower(Node):
-    def __init__(self):
-        # The node name remains 'line_following'. It will be remapped to a specific
-        # namespace using your launch file.
-        super().__init__('line_following')
-        self.get_logger().info('Line follower node started.')
 
-        # Subscribe to the camera image topic (a relative topic will resolve to e.g. /robot1/camera/image_raw)
+    def __init__(self):
+        super().__init__('line_follower')
+        self.get_logger().info('Line follower node with TF collision avoidance started.')
+
+        # Subscribe to the camera image topic
         self.subscription = self.create_subscription(
             Image,
-            'camera/image_raw',
+            '/camera/image_raw',
             self.image_callback,
             10)
-        
-        # Publisher for velocity commands on a relative topic "cmd_vel"
-        # This ensures that under a namespace, it will resolve to e.g. /robot1/cmd_vel.
-        self.publisher = self.create_publisher(Twist, 'cmd_vel', 10)
+
+        # Publisher to send velocity commands
+        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+
         self.bridge = CvBridge()
+
+        # TF2 setup: Create a buffer and listener.
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+
+        # List of TF frames of other robots to avoid.
+        # Adjust this list based on the unique namespaces of the other robots.
+        self.other_robot_frames = ["robot2/base_link", "robot3/base_link"]
+
+    def compute_tf_repulsive_angular(self):
+        """
+        Queries TF for each other robot frame relative to our "base_link" and computes
+        a repulsive angular adjustment if another robot is too close.
+        Returns:
+           A repulsive angular term (in radians per second) to steer away.
+        """
+        SAFETY_THRESHOLD = 1.0   # meters – tune this based on your simulation scale
+        AVOIDANCE_GAIN = 0.5     # gain factor; adjust as needed
+        repulsive_sum = 0.0
+
+        # Iterate over all the other robot frames
+        for frame in self.other_robot_frames:
+            try:
+                # Query transform from our "base_link" to the other robot's base_link.
+                # Note: Adjust the target/source frames if your TF tree is organized differently.
+                now = rclpy.time.Time()
+                transform = self.tf_buffer.lookup_transform("base_link", frame, now, timeout=rclpy.duration.Duration(seconds=0.5))
+                # Get translation components (in meters)
+                dx = transform.transform.translation.x
+                dy = transform.transform.translation.y
+                distance = math.hypot(dx, dy)
+                if distance < SAFETY_THRESHOLD and distance > 0:
+                    # Strength scales inversely with distance
+                    strength = (SAFETY_THRESHOLD - distance) / SAFETY_THRESHOLD
+                    # Compute the angle to the other robot relative to our frame
+                    angle = math.atan2(dy, dx)
+                    # Use sin(angle) for a horizontal component.
+                    # The negative sign ensures steering away from the other robot.
+                    repulsive = AVOIDANCE_GAIN * strength * (-math.sin(angle))
+                    repulsive_sum += repulsive
+            except TransformException as ex:
+                self.get_logger().warn(f"TF lookup failed for {frame}: {ex}")
+                continue
+
+        return repulsive_sum
 
     def image_callback(self, msg):
         try:
@@ -342,44 +479,51 @@ class LineFollower(Node):
             self.get_logger().error(f"CvBridge Error: {e}")
             return
 
-        # For debugging: show a resized camera feed.
-        large_view = cv2.resize(cv_image, (0, 0), fx=1.0, fy=1.5)
-        cv2.imshow("Camera Feed", large_view)
+        # For debugging: Show the camera feed
+        cv2.imshow("Camera Feed", cv_image)
+        cv2.waitKey(5)
 
-        # Process the image: convert to grayscale and crop the lower part.
+        # Convert the image to grayscale and crop the lower part
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         height, width = gray.shape
         crop_height = 100
         crop_img = gray[height - crop_height:height, 0:width]
 
-        # Apply a binary threshold (inverting so that dark line appears white)
+        # Apply binary threshold (THRESH_BINARY_INV so that a dark line becomes white)
         ret, thresh = cv2.threshold(crop_img, 200, 255, cv2.THRESH_BINARY_INV)
 
-        # For debugging: enlarge the binary mask window.
+        # For debugging: Enlarge the binary mask window for a better view (taller window)
         mask_display = cv2.resize(thresh, (0, 0), fx=1.0, fy=2.0)
         cv2.imshow("Binary Mask", mask_display)
         cv2.waitKey(5)
 
-        # Find contours in the threshold image.
+        # Find contours in the thresholded image
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         twist = Twist()
+        # Compute nominal line-following command from camera image
         if contours:
-            # Choose the largest contour as the line.
             c = max(contours, key=cv2.contourArea)
             M = cv2.moments(c)
             if M['m00'] != 0:
                 cx = int(M['m10'] / M['m00'])
                 error = cx - (width / 2)
                 twist.linear.x = 0.05  # Reduced forward speed
-                twist.angular.z = -float(error) / 150
-                self.get_logger().info(f"Line detected. Error: {error}, Angular z: {twist.angular.z:.2f}")
+                line_following_angular = -float(error) / 150.0  # Nominal angular command
+                self.get_logger().info(f"Line detected. Error: {error}, Base Angular: {line_following_angular:.2f}")
             else:
-                self.get_logger().warn("Zero moment, cannot compute centroid.")
+                line_following_angular = 0.0
+                twist.linear.x = 0.0
         else:
-            self.get_logger().info("Line not found, stopping robot.")
+            line_following_angular = 0.0
             twist.linear.x = 0.0
-            twist.angular.z = 0.0
+
+        # Compute TF-based repulsive angular component for collision avoidance
+        repulsive_angular = self.compute_tf_repulsive_angular()
+        self.get_logger().info(f"Repulsive Angular: {repulsive_angular:.2f}")
+
+        # Fuse the two angular commands
+        twist.angular.z = line_following_angular + repulsive_angular
 
         self.publisher.publish(twist)
 
@@ -392,6 +536,5 @@ def main(args=None):
         pass
     node.destroy_node()
     rclpy.shutdown()
-
 if __name__ == '__main__':
     main()
