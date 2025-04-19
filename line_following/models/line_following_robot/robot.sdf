@@ -405,9 +405,6 @@
   <joint_name>wheel_left_joint</joint_name>
   <joint_name>wheel_right_joint</joint_name>
 </plugin>
-
-...
-
     <plugin name="imu_sensor_plugin_lf" filename="libgazebo_ros_imu_sensor.so">
       <ros>
         <remapping>~/out:=imu</remapping>
