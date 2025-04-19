@@ -408,8 +408,11 @@
 
 ...
 
-<plugin name="imu_sensor_plugin_lf" filename="libgazebo_ros_imu_sensor.so">
-  <ros>
-    <remapping>~/out:=imu</remapping>
-  </ros>
-</plugin>
+    <plugin name="imu_sensor_plugin_lf" filename="libgazebo_ros_imu_sensor.so">
+      <ros>
+        <remapping>~/out:=imu</remapping>
+      </ros>
+    </plugin>
+
+  </model>
+</sdf>
