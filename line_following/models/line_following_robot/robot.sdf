@@ -379,23 +379,24 @@
     </joint>
 
     <plugin name="turtlebot3_diff_drive" filename="libgazebo_ros_diff_drive.so">
-      <ros>
-      </ros>
-      <update_rate>30</update_rate>
-      <left_joint>wheel_left_joint</left_joint>
-      <right_joint>wheel_right_joint</right_joint>
-      <wheel_separation>0.287</wheel_separation>
-      <wheel_diameter>0.066</wheel_diameter>
-      <max_wheel_torque>20</max_wheel_torque>
-      <max_wheel_acceleration>1.0</max_wheel_acceleration>
-      <command_topic>cmd_vel</command_topic>
-      <publish_odom>true</publish_odom>
-      <publish_odom_tf>true</publish_odom_tf>
-      <publish_wheel_tf>false</publish_wheel_tf>
-      <odometry_topic>odom</odometry_topic>
-      <odometry_frame>odom</odometry_frame>
-      <robot_base_frame>base_footprint</robot_base_frame>
-    </plugin>
+  <ros>
+    <namespace>/line_following_robot</namespace>
+  </ros>
+  <update_rate>30</update_rate>
+  <left_joint>wheel_left_joint</left_joint>
+  <right_joint>wheel_right_joint</right_joint>
+  <wheel_separation>0.287</wheel_separation>
+  <wheel_diameter>0.066</wheel_diameter>
+  <max_wheel_torque>20</max_wheel_torque>
+  <max_wheel_acceleration>1.0</max_wheel_acceleration>
+  <publish_odom>true</publish_odom>
+  <publish_odom_tf>true</publish_odom_tf>
+  <publish_wheel_tf>false</publish_wheel_tf>
+  <odometry_topic>odom</odometry_topic>
+  <odometry_frame>odom</odometry_frame>
+  <robot_base_frame>base_footprint</robot_base_frame>
+</plugin>
+
 
     <plugin name="turtlebot3_joint_state" filename="libgazebo_ros_joint_state_publisher.so">
       <ros>
