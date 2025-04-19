@@ -378,10 +378,10 @@
       </axis>
     </joint>
 
-    <plugin name="diff_drive_lf" filename="libgazebo_ros_diff_drive.so">
+    <plugin name="diff_drive_plugin" filename="libgazebo_ros_diff_drive.so">
   <ros>
     <namespace>/line_following_robot</namespace>
-  </ros>
+  </ros> 
   <update_rate>30</update_rate>
   <left_joint>wheel_left_joint</left_joint>
   <right_joint>wheel_right_joint</right_joint>
