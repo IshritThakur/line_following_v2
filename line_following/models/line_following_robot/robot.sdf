@@ -378,7 +378,7 @@
       </axis>
     </joint>
 
-    <plugin name="diff_drive_controller" filename="libgazebo_ros_diff_drive.so">
+    <plugin name="diff_drive_lf" filename="libgazebo_ros_diff_drive.so">
   <ros>
     <namespace>/line_following_robot</namespace>
   </ros>
@@ -405,11 +405,7 @@
   <joint_name>wheel_left_joint</joint_name>
   <joint_name>wheel_right_joint</joint_name>
 </plugin>
-    <plugin name="imu_sensor_plugin_lf" filename="libgazebo_ros_imu_sensor.so">
-      <ros>
-        <remapping>~/out:=imu</remapping>
-      </ros>
-    </plugin>
+
 
   </model>
 </sdf>
