@@ -1,4 +1,3 @@
-# #!/usr/bin/env python3
 # import rclpy
 # from rclpy.node import Node
 # from sensor_msgs.msg import Image
@@ -398,94 +397,257 @@
 
 
 # CONTROLLER V4.0
+# import rclpy
+# from rclpy.node import Node
+# from sensor_msgs.msg import Image
+# from geometry_msgs.msg import Twist
+# from cv_bridge import CvBridge, CvBridgeError
+# import cv2
+# import numpy as np
+
+
+
+
+# class LineFollower(Node):
+
+#     def __init__(self):
+#         super().__init__('line_following')
+#         self.get_logger().info('Line follower node started.')
+
+#         # Subscribe to the camera image topic
+#         self.subscription = self.create_subscription(
+#             Image,
+#             '/camera/image_raw',
+#             self.image_callback,
+#             10)
+#         # Publisher for velocity commands
+
+#         self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+
+#         self.bridge = CvBridge()
+
+#     def image_callback(self, msg):
+#         try:
+#             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+#         except CvBridgeError as e:
+#             self.get_logger().error(f"CvBridge Error: {e}")
+#             return
+
+#         # For debugging: show a resized camera feed.
+#         large_view = cv2.resize(cv_image, (0, 0), fx=1.0, fy=1.5)
+#         cv2.imshow("Camera Feed", large_view)
+
+#         # Process the image: convert to grayscale and crop the lower part.
+#         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+#         height, width = gray.shape
+#         crop_height = 100
+#         crop_img = gray[height - crop_height:height, 0:width]
+
+#         # Apply a binary threshold (inverting so that dark line appears white)
+#         ret, thresh = cv2.threshold(crop_img, 200, 255, cv2.THRESH_BINARY_INV)
+
+#         # For debugging: enlarge the binary mask window.
+#         mask_display = cv2.resize(thresh, (0, 0), fx=1.0, fy=2.0)
+#         cv2.imshow("Binary Mask", mask_display)
+#         cv2.waitKey(5)
+
+#         # Find contours in the threshold image.
+#         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+#         twist = Twist()
+
+#         if contours:
+#             # Choose the largest contour as the line.
+#             c = max(contours, key=cv2.contourArea)
+#             M = cv2.moments(c)
+#             if M['m00'] != 0:
+#                 cx = int(M['m10'] / M['m00'])
+#                 error = cx - (width / 2)
+#                 twist.linear.x = 0.05  # Reduced forward speed
+#                 twist.angular.z = -float(error) / 150
+#                 self.get_logger().info(f"Line detected. Error: {error}, Angular z: {twist.angular.z:.2f}")
+#             else:
+#                 self.get_logger().warn("Zero moment, cannot compute centroid.")
+
+#         else:
+#             self.get_logger().info("Line not found, stopping robot.")
+#             twist.linear.x = 0.0
+#             twist.angular.z = 0.0
+
+#         self.publisher.publish(twist)
+
+# def main(args=None):
+#     rclpy.init(args=args)
+#     node = LineFollower()
+#     try:
+#         rclpy.spin(node)
+#     except KeyboardInterrupt:
+#         pass
+#     node.destroy_node()
+#     rclpy.shutdown()
+
+# if __name__ == '__main__':
+#     main()
+
+
+
+
+
+# CONTROLLER V5.0 hopefully final
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
-from cv_bridge import CvBridge, CvBridgeError
+from std_srvs.srv import Empty
+
+from cv_bridge import CvBridge
 import cv2
 import numpy as np
 
+# Configurable parameters
+MIN_AREA = 500
+MIN_AREA_TRACK = 5000
+LINEAR_SPEED = 0.2
+KP = 1.5 / 100
+LOSS_FACTOR = 1.2
+TIMER_PERIOD = 0.06
+FINALIZATION_PERIOD = 4
+MAX_ERROR = 30
 
+lower_bgr_values = np.array([31, 42, 53])
+upper_bgr_values = np.array([255, 255, 255])
 
+def crop_size(height, width):
+    return (1 * height // 3, height, width // 4, 3 * width // 4)
 
 class LineFollower(Node):
 
     def __init__(self):
-        super().__init__('line_following')
-        self.get_logger().info('Line follower node started.')
-
-        # Subscribe to the camera image topic
-        self.subscription = self.create_subscription(
-            Image,
-            '/camera/image_raw',
-            self.image_callback,
-            10)
-        # Publisher for velocity commands
-
-        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+        super().__init__('line_follower')
+        self.get_logger().info("Advanced line follower node started.")
 
         self.bridge = CvBridge()
+        self.image = None
+        self.error = 0
+        self.just_seen_line = False
+        self.just_seen_right_mark = False
+        self.should_move = False
+        self.right_mark_count = 0
+        self.finalization_countdown = None
+
+        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.subscription = self.create_subscription(Image, '/camera/image_raw', self.image_callback, 10)
+
+        self.create_service(Empty, 'start_follower', self.start_callback)
+        self.create_service(Empty, 'stop_follower', self.stop_callback)
+
+        self.timer = self.create_timer(TIMER_PERIOD, self.timer_callback)
+
+    def start_callback(self, request, response):
+        self.should_move = True
+        self.right_mark_count = 0
+        self.finalization_countdown = None
+        self.get_logger().info("Follower started.")
+        return response
+
+    def stop_callback(self, request, response):
+        self.should_move = False
+        self.finalization_countdown = None
+        self.get_logger().info("Follower stopped.")
+        return response
 
     def image_callback(self, msg):
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-        except CvBridgeError as e:
-            self.get_logger().error(f"CvBridge Error: {e}")
+            self.image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        except Exception as e:
+            self.get_logger().error(f"Could not convert image: {e}")
+
+    def get_contour_data(self, mask, out, crop_w_start):
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        mark = {}
+        line = {}
+
+        for contour in contours:
+            M = cv2.moments(contour)
+            if M['m00'] > MIN_AREA:
+                cx = crop_w_start + int(M["m10"] / M["m00"])
+                cy = int(M["m01"] / M["m00"])
+
+                if M['m00'] > MIN_AREA_TRACK:
+                    line['x'] = cx
+                    line['y'] = cy
+                    cv2.drawContours(out, [contour], -1, (255, 255, 0), 2)
+                else:
+                    if not mark or mark['y'] > cy:
+                        mark['x'] = cx
+                        mark['y'] = cy
+                        cv2.drawContours(out, [contour], -1, (255, 0, 255), 2)
+
+        mark_side = None
+        if mark and line:
+            mark_side = "right" if mark['x'] > line['x'] else "left"
+
+        return line, mark_side
+
+    def timer_callback(self):
+        if self.image is None:
             return
 
-        # For debugging: show a resized camera feed.
-        large_view = cv2.resize(cv_image, (0, 0), fx=1.0, fy=1.5)
-        cv2.imshow("Camera Feed", large_view)
+        height, width, _ = self.image.shape
+        image = self.image.copy()
+        crop_h_start, crop_h_stop, crop_w_start, crop_w_stop = crop_size(height, width)
+        crop = image[crop_h_start:crop_h_stop, crop_w_start:crop_w_stop]
 
-        # Process the image: convert to grayscale and crop the lower part.
-        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
-        height, width = gray.shape
-        crop_height = 100
-        crop_img = gray[height - crop_height:height, 0:width]
+        mask = cv2.inRange(crop, lower_bgr_values, upper_bgr_values)
+        output = image
+        line, mark_side = self.get_contour_data(mask, output[crop_h_start:crop_h_stop, crop_w_start:crop_w_stop], crop_w_start)
 
-        # Apply a binary threshold (inverting so that dark line appears white)
-        ret, thresh = cv2.threshold(crop_img, 200, 255, cv2.THRESH_BINARY_INV)
+        message = Twist()
 
-        # For debugging: enlarge the binary mask window.
-        mask_display = cv2.resize(thresh, (0, 0), fx=1.0, fy=2.0)
-        cv2.imshow("Binary Mask", mask_display)
+        if line:
+            self.error = line['x'] - width // 2
+            message.linear.x = LINEAR_SPEED
+            self.just_seen_line = True
+            cv2.circle(output, (line['x'], crop_h_start + line['y']), 5, (0, 255, 0), 7)
+        else:
+            if self.just_seen_line:
+                self.just_seen_line = False
+                self.error = self.error * LOSS_FACTOR
+            message.linear.x = 0.0
+
+        if mark_side == "right" and self.finalization_countdown is None and abs(self.error) <= MAX_ERROR and not self.just_seen_right_mark:
+            self.right_mark_count += 1
+            self.just_seen_right_mark = True
+            if self.right_mark_count > 1:
+                self.finalization_countdown = int(FINALIZATION_PERIOD / TIMER_PERIOD) + 1
+                self.get_logger().info("Finalization process has begun.")
+        else:
+            self.just_seen_right_mark = False
+
+        message.angular.z = -self.error * KP
+
+        cv2.rectangle(output, (crop_w_start, crop_h_start), (crop_w_stop, crop_h_stop), (0, 0, 255), 2)
+        cv2.imshow("Line Follower", output)
         cv2.waitKey(5)
 
-        # Find contours in the threshold image.
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        twist = Twist()
-
-        if contours:
-            # Choose the largest contour as the line.
-            c = max(contours, key=cv2.contourArea)
-            M = cv2.moments(c)
-            if M['m00'] != 0:
-                cx = int(M['m10'] / M['m00'])
-                error = cx - (width / 2)
-                twist.linear.x = 0.05  # Reduced forward speed
-                twist.angular.z = -float(error) / 150
-                self.get_logger().info(f"Line detected. Error: {error}, Angular z: {twist.angular.z:.2f}")
+        if self.finalization_countdown is not None:
+            if self.finalization_countdown > 0:
+                self.finalization_countdown -= 1
             else:
-                self.get_logger().warn("Zero moment, cannot compute centroid.")
+                self.should_move = False
 
-        else:
-            self.get_logger().info("Line not found, stopping robot.")
-            twist.linear.x = 0.0
-            twist.angular.z = 0.0
+        self.publisher.publish(message if self.should_move else Twist())
 
-        self.publisher.publish(twist)
-
-def main(args=None):
-    rclpy.init(args=args)
+def main():
+    rclpy.init()
     node = LineFollower()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        pass
-    node.destroy_node()
-    rclpy.shutdown()
+        node.publisher.publish(Twist())
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
