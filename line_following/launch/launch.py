@@ -1,7 +1,7 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess, LogInfo, SetEnvironmentVariable
+from launch.actions import ExecuteProcess, LogInfo, SetEnvironmentVariable, TimerAction
 from launch_ros.actions import Node
 
 def generate_launch_description():
@@ -27,7 +27,7 @@ def generate_launch_description():
             'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
             '-entity', 'line_following_robot',
             '-robot_namespace', 'line_following_robot',
-            '-file', os.path.join(pkg_share, 'models', 'line_following_robot','robot.sdf'),
+            '-file', os.path.join(pkg_share, 'models', 'line_following_robot', 'robot.sdf'),
             '-x', '0', '-y', '0', '-z', '0.01'
         ],
         output='screen'
@@ -43,12 +43,28 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True}]
     )
 
+    # Call the start_line_follower service after 10 seconds
+    start_service_call = TimerAction(
+        period=10.0,
+        actions=[
+            ExecuteProcess(
+                cmd=[
+                    'ros2', 'service', 'call',
+                    '/line_following_robot/start_line_follower',
+                    'std_srvs/srv/Empty', '{}'
+                ],
+                output='screen'
+            )
+        ]
+    )
+
     ld = LaunchDescription()
     ld.add_action(log_world)
     ld.add_action(set_gazebo_model_path)
     ld.add_action(gazebo_process)
     ld.add_action(spawn_robot)
     ld.add_action(line_following_node)
+    ld.add_action(start_service_call)
 
     return ld
 

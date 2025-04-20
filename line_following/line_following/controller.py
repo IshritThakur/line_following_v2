@@ -88,13 +88,15 @@
 
 #!/usr/bin/env python3
 """
-A ROS2 node that follows a line with basic camera-based collision avoidance.
-Compatible with multiple robots via relative topics under namespaces.
+A ROS2 node that follows a line with basic camera-based collision avoidance,
+with start/stop services for controlled activation. Compatible with multiple
+robots via relative topics under namespaces.
 """
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
+from std_srvs.srv import Empty
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
@@ -106,17 +108,34 @@ CROP_HEIGHT  = 100
 
 # Collision avoidance parameters
 COLLISION_AREA_THRESHOLD = 20000  # px²
-COLLISION_ZONE_WIDTH     = 100   # px around image center
+COLLISION_ZONE_WIDTH     = 100    # px around image center
 
 class LineFollower(Node):
     def __init__(self):
         super().__init__('line_following')
         self.get_logger().info('Line follower + collision avoidance node started.')
         self.bridge = CvBridge()
+        # Activation flag (start enabled: automatically move upon startup)
+        self.should_move = True
         # Use relative topics for multi-robot namespace remapping
         self.subscription = self.create_subscription(
             Image, 'camera/image_raw', self.image_callback, 10)
         self.publisher    = self.create_publisher(Twist, 'cmd_vel', 10)
+        # Services to start/stop
+        self.create_service(Empty, 'start_line_follower', self.start_callback)
+        self.create_service(Empty, 'stop_line_follower', self.stop_callback)
+
+    def start_callback(self, request, response):
+        self.should_move = True
+        self.get_logger().info('Start service called, movement enabled.')
+        return response
+
+    def stop_callback(self, request, response):
+        self.should_move = False
+        self.get_logger().info('Stop service called, movement disabled.')
+        # Immediately stop robot
+        self.publisher.publish(Twist())
+        return response
 
     def image_callback(self, msg):
         try:
@@ -139,16 +158,17 @@ class LineFollower(Node):
         z0 = w//2 - COLLISION_ZONE_WIDTH//2
         z1 = w//2 + COLLISION_ZONE_WIDTH//2
         h_crop, _ = edges.shape
-        zone = edges[:h_crop//2, z0:z1] 
+        zone = edges[:h_crop//2, z0:z1]
         cnts, _ = cv2.findContours(zone, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for c in cnts:
             if cv2.contourArea(c) > COLLISION_AREA_THRESHOLD:
+                # Obstacle detected: pivot in place
                 twist = Twist()
                 twist.linear.x  = 0.0
                 twist.angular.z = 0.5
                 self.get_logger().warn('Collision detected! Avoiding...')
-                self.publisher.publish(twist)
-                # visualize
+                if self.should_move:
+                    self.publisher.publish(twist)
                 cv2.rectangle(frame, (z0, h - CROP_HEIGHT), (z1, h), (0,0,255), 2)
                 cv2.imshow('Collision Zone', cv2.resize(zone, (0, 0), fx=1.0, fy=2.0))
                 cv2.waitKey(5)
@@ -157,9 +177,8 @@ class LineFollower(Node):
         # Fallback to line-following
         _, thresh = cv2.threshold(crop, 200, 255, cv2.THRESH_BINARY_INV)
         cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
         twist = Twist()
-        if cnts:
+        if cnts and self.should_move:
             c = max(cnts, key=cv2.contourArea)
             M = cv2.moments(c)
             if M['m00'] > 0:
@@ -170,7 +189,7 @@ class LineFollower(Node):
                 self.get_logger().info(f'Line detected. err={err:.1f}, angz={twist.angular.z:.2f}')
                 cv2.circle(frame, (cx, h - CROP_HEIGHT//2), 5, (0,255,0), -1)
         else:
-            self.get_logger().info('Line lost. Stopping.')
+            # Stop if no line or not activated
             twist.linear.x  = 0.0
             twist.angular.z = 0.0
 
