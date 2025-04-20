@@ -107,7 +107,7 @@ TURN_GAIN    = 1.0 / 150.0
 CROP_HEIGHT  = 100
 
 # Collision avoidance parameters
-COLLISION_AREA_THRESHOLD = 20000  # px²
+COLLISION_AREA_THRESHOLD = 30000  # px² (raised to ignore line edges)  # px²
 COLLISION_ZONE_WIDTH     = 100    # px around image center
 
 class LineFollower(Node):
@@ -158,7 +158,8 @@ class LineFollower(Node):
         z0 = w//2 - COLLISION_ZONE_WIDTH//2
         z1 = w//2 + COLLISION_ZONE_WIDTH//2
         h_crop, _ = edges.shape
-        zone = edges[:h_crop//2, z0:z1]
+        # Only look in the upper third to avoid detecting the line itself
+        zone = edges[:h_crop//3, z0:z1]
         cnts, _ = cv2.findContours(zone, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for c in cnts:
             if cv2.contourArea(c) > COLLISION_AREA_THRESHOLD:
