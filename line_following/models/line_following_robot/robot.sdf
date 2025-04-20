@@ -1,12 +1,9 @@
 <?xml version="1.0" ?>
 <sdf version="1.5">
-  <model name="custom_turtlebot">  
-  <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
-
+  <model name="line_following_robot">  
+    <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
     <link name="base_footprint"/>
-
     <link name="base_link">
-
       <inertial>
         <pose>-0.064 0 0.048 0 0 0</pose>
         <inertia>
@@ -19,7 +16,6 @@
         </inertia>
         <mass>1.0</mass>
       </inertial>
-
       <collision name="base_collision">
         <pose>-0.064 0 0.048 0 0 0</pose>
         <geometry>
@@ -28,18 +24,17 @@
           </box>
         </geometry>
       </collision>
-
       <visual name="base_visual">
         <pose>-0.064 0 0 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://turtlebot3_waffle_pi/meshes/waffle_pi_base.dae</uri>
+            <!-- Updated mesh path for base -->
+            <uri>model://line_following_robot/waffle_pi_base.dae</uri>
             <scale>0.001 0.001 0.001</scale>
           </mesh>
         </geometry>
       </visual>
     </link>
-
     <link name="imu_link">
       <sensor name="tb3_imu" type="imu">
         <always_on>true</always_on>
@@ -94,9 +89,7 @@
         </plugin>
       </sensor>
     </link>
-
     <link name="wheel_left_link">
-
       <inertial>
         <pose>0.0 0.144 0.023 -1.57 0 0</pose>
         <inertia>
@@ -119,7 +112,7 @@
           </cylinder>
         </geometry>
         <surface>
-          <!-- This friction pamareter don't contain reliable data!! -->
+          <!-- This friction parameter might not contain reliable data -->
           <friction>
             <ode>
               <mu>100000.0</mu>
@@ -146,15 +139,14 @@
         <pose>0.0 0.144 0.023 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://turtlebot3_waffle/meshes/tire.dae</uri>
+            <!-- Updated mesh path for tire -->
+            <uri>model://line_following_robot/tire.dae</uri>
             <scale>0.001 0.001 0.001</scale>
           </mesh>
         </geometry>
       </visual>
     </link>
-
     <link name="wheel_right_link">
-
       <inertial>
         <pose>0.0 -0.144 0.023 -1.57 0 0</pose>
         <inertia>
@@ -177,10 +169,10 @@
           </cylinder>
         </geometry>
         <surface>
-          <!-- This friction pamareter don't contain reliable data!! -->
+          <!-- This friction parameter might not contain reliable data -->
           <friction>
             <ode>
-              <mu>100000.0</mu>
+              <mu>100000.0</mu>  
               <mu2>100000.0</mu2>
               <fdir1>0 0 0</fdir1>
               <slip1>0.0</slip1>
@@ -204,13 +196,13 @@
         <pose>0.0 -0.144 0.023 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://turtlebot3_waffle/meshes/tire.dae</uri>
+            <!-- Updated mesh path for tire -->
+            <uri>model://line_following_robot/tire.dae</uri>
             <scale>0.001 0.001 0.001</scale>
           </mesh>
         </geometry>
       </visual>
     </link>
-
     <link name='caster_back_right_link'>
       <pose>-0.177 -0.064 -0.004 0 0 0</pose>
       <inertial>
@@ -244,7 +236,6 @@
         </surface>
       </collision>
     </link>
-
     <link name='caster_back_left_link'>
       <pose>-0.177 0.064 -0.004 0 0 0</pose>
       <inertial>
@@ -278,9 +269,7 @@
         </surface>
       </collision>
     </link>
-
     <link name="camera_link"/>
-
     <link name="camera_rgb_optical_frame">
       <inertial>
         <pose>0.076 0.0 0.093 0 0 0</pose>
@@ -294,16 +283,7 @@
         </inertia>
         <mass>0.035</mass>
       </inertial>
-
-      <!-- <collision name="collision">
-        <pose>0.076 0.0 0.093 0 0 0</pose>
-        <geometry>
-          <box>
-            <size>0.008 0.130 0.022</size>
-          </box>
-        </geometry>
-      </collision> -->
-      <pose>0.05 0 0.25 0 1.0 0</pose> <!-- THE PARAMETERS THAT MATTER -->
+      <pose>0.05 0 0.25 0 1.0 0</pose>
       <sensor name="camera" type="camera">
         <always_on>true</always_on>
         <visualize>true</visualize>
@@ -321,32 +301,21 @@
           </clip>
           <noise>
             <type>gaussian</type>
-            <!-- Noise is sampled independently per pixel on each frame.
-                  That pixel's noise value is added to each of its color
-                  channels, which at that point lie in the range [0,1]. -->
             <mean>0.0</mean>
             <stddev>0.007</stddev>
           </noise>
         </camera>
           <plugin name="camera_driver" filename="libgazebo_ros_camera.so">
             <ros>
-              <!-- <namespace>test_cam</namespace> -->
-              <!-- <remapping>image_raw:=image_demo</remapping> -->
-              <!-- <remapping>camera_info:=camera_info_demo</remapping> -->
             </ros>
-            <!-- camera_name>omit so it defaults to sensor name</camera_name-->
-            <!-- frame_name>omit so it defaults to link name</frameName-->
-            <!-- <hack_baseline>0.07</hack_baseline> -->
           </plugin>
       </sensor>
     </link>
-    
     <joint name="base_joint" type="fixed">
       <parent>base_footprint</parent>
       <child>base_link</child>
       <pose>0.0 0.0 0.010 0 0 0</pose>
     </joint>
-
     <joint name="wheel_left_joint" type="revolute">
       <parent>base_link</parent>
       <child>wheel_left_link</child>
@@ -355,7 +324,6 @@
         <xyz>0 0 1</xyz>
       </axis>
     </joint>
-
     <joint name="wheel_right_joint" type="revolute">
       <parent>base_link</parent>
       <child>wheel_right_link</child>
@@ -364,17 +332,14 @@
         <xyz>0 0 1</xyz>
       </axis>
     </joint>
-
     <joint name='caster_back_right_joint' type='ball'>
       <parent>base_link</parent>
       <child>caster_back_right_link</child>
     </joint>
-
     <joint name='caster_back_left_joint' type='ball'>
       <parent>base_link</parent>
       <child>caster_back_left_link</child>
     </joint>
-
     <joint name="camera_joint" type="fixed">
       <parent>base_link</parent>
       <child>camera_link</child>
@@ -383,7 +348,6 @@
         <xyz>0 0 1</xyz>
       </axis>
     </joint>
-
     <joint name="camera_rgb_joint" type="fixed">
       <parent>camera_link</parent>
       <child>camera_rgb_optical_frame</child>
@@ -392,43 +356,26 @@
         <xyz>0 0 1</xyz>
       </axis>
     </joint>
-
     <plugin name="turtlebot3_diff_drive" filename="libgazebo_ros_diff_drive.so">
-
       <ros>
-        <!-- <namespace>/tb3</namespace> -->
       </ros>
-
       <update_rate>30</update_rate>
-
-      <!-- wheels -->
       <left_joint>wheel_left_joint</left_joint>
       <right_joint>wheel_right_joint</right_joint>
-
-      <!-- kinematics -->
       <wheel_separation>0.287</wheel_separation>
       <wheel_diameter>0.066</wheel_diameter>
-
-      <!-- limits -->
       <max_wheel_torque>20</max_wheel_torque>
       <max_wheel_acceleration>1.0</max_wheel_acceleration>
-
       <command_topic>cmd_vel</command_topic>
-
-      <!-- output -->
       <publish_odom>true</publish_odom>
       <publish_odom_tf>true</publish_odom_tf>
       <publish_wheel_tf>false</publish_wheel_tf>
-
       <odometry_topic>odom</odometry_topic>
       <odometry_frame>odom</odometry_frame>
       <robot_base_frame>base_footprint</robot_base_frame>
-
     </plugin>
-
     <plugin name="turtlebot3_joint_state" filename="libgazebo_ros_joint_state_publisher.so">
       <ros>
-        <!-- <namespace>/tb3</namespace> -->
         <remapping>~/out:=joint_states</remapping>
       </ros>
       <update_rate>30</update_rate>
