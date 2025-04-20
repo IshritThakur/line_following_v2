@@ -28,20 +28,24 @@ def generate_launch_description():
             f"ros2 run gazebo_ros spawn_entity.py "
             f"-entity line_following_robot "
             f"-robot_namespace line_following_robot "
-            f"-file {os.path.join(pkg_share, 'models', 'line_following_robot', 'robot.sdf')} "
+            f"-file {os.path.join(pkg_share, 'models', 'robot.sdf')} "
             f"-x 0 -y 0 -z 0.01 || true"
         ],
         output='screen'
     )
 
-    # Launch the line-following controller node (uses relative topics)
+    # Launch the line-following controller node with remappings
     line_following_node = Node(
         package='line_following',
         executable='controller',
         name='line_following',
         namespace='line_following_robot',
         output='screen',
-        parameters=[{'use_sim_time': True}]
+        parameters=[{'use_sim_time': True}],
+        remappings=[
+            ('camera/image_raw', '/camera/image_raw'),  # subscribe to global camera
+            ('cmd_vel', '/cmd_vel'),                    # publish to global cmd_vel
+        ],
     )
 
     # Call the start_line_follower service after 10 seconds
