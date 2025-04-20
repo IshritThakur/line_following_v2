@@ -12,7 +12,7 @@ import numpy as np
 # User-defined parameters
 MIN_AREA = 500               # Minimum contour area to consider
 MIN_AREA_TRACK = 5000        # Minimum area for track contour
-LINEAR_SPEED = 0.05          # Forward speed when line is detected
+LINEAR_SPEED = 0.2          # Forward speed when line is detected
 KP = 1.5 / 100               # Proportional gain for turning
 LOSS_FACTOR = 1.2            # Error compensation when line is lost
 TIMER_PERIOD = 0.06          # Timer period in seconds
