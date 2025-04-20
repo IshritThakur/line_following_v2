@@ -21,14 +21,15 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Spawn a single robot using the spawn_entity node
+    # Spawn a single robot (ignore failure if it already exists)
     spawn_robot = ExecuteProcess(
         cmd=[
-            'ros2', 'run', 'gazebo_ros', 'spawn_entity.py',
-            '-entity', 'line_following_robot',
-            '-robot_namespace', 'line_following_robot',
-            '-file', os.path.join(pkg_share, 'models', 'line_following_robot', 'robot.sdf'),
-            '-x', '0', '-y', '0', '-z', '0.01'
+            'bash', '-lc',
+            f"ros2 run gazebo_ros spawn_entity.py "
+            f"-entity line_following_robot "
+            f"-robot_namespace line_following_robot "
+            f"-file {os.path.join(pkg_share, 'models', 'line_following_robot', 'robot.sdf')} "
+            f"-x 0 -y 0 -z 0.01 || true"
         ],
         output='screen'
     )
