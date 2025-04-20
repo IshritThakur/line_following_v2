@@ -180,9 +180,9 @@ def generate_launch_description():
         period=10.0,
         actions=[
             ExecuteProcess(
-                cmd=['ros2', 'service', 'call', '/line_following_robot/start_line_follower', 'std_srvs/srv/Empty', '{}'],
+                cmd=['ros2', 'service', 'call','/line_following_robot/start_follower','std_srvs/srv/Empty', '{}'],
                 output='screen'
-            )
+        )
         ]
     )
 
