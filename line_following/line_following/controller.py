@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 """
-Adaptive-threshold line follower with hybrid obstacle avoidance.
+Binary-threshold line follower with **filled-blob** obstacle avoidance.
 
-Key changes
------------
-• Line detector now uses *adaptive Gaussian thresholding* on the bottom
-  LINE_ROI_FRAC of the frame – no fixed “binary mask” threshold.
-• Only the accepted line contour is shown in <ns>-Mask.
-• Hybrid obstacle detector (dark-blob + dilated edges) is unchanged.
+Improvements over previous version
+----------------------------------
+• After combining dark-pixel mask + dilated edges we fill each external
+  contour → the whole robot chassis becomes one solid white blob.
+• Existing filters then detect the blob early and stop reliably.
 
-Windows shown (per robot)
--------------------------
-<ns>-Cam       – camera view + steering dot + obstacle box  
-<ns>-Mask      – adaptive-threshold line contour only  
-<ns>-Obstacle  – combined obstacle mask  
+Debug windows
+-------------
+<ns>-Cam       – camera + steering dot + red stop box  
+<ns>-Mask      – single contour used for steering  
+<ns>-Obstacle  – filled obstacle mask (all white where robot body is)
 """
 
 import atexit
@@ -27,9 +26,9 @@ from sensor_msgs.msg import Image
 from std_srvs.srv import Empty
 
 # ── tuning ──────────────────────────────────────────────────────────────
-LINEAR_SPEED        = 0.10        # m s⁻¹
-TURN_GAIN           = 1.0 / 90    # rad s⁻¹ per pixel error
-CROP_H              = 120         # px analysed at bottom of frame
+LINEAR_SPEED        = 0.10
+TURN_GAIN           = 1.0 / 90
+CROP_H              = 120
 
 # obstacle detector
 DARK_THR            = 100
@@ -40,8 +39,6 @@ ROI_HEIGHT_FRACTION = 0.6
 # line detector
 LINE_ROI_FRAC       = 0.30
 MAX_LINE_HEIGHT     = 25
-ADAPT_BLOCK         = 11          # odd; ~ line width in px
-ADAPT_C             = 2           # subtract from local mean
 # ─────────────────────────────────────────────────────────────────────────
 
 
@@ -63,15 +60,15 @@ class LineFollower(Node):
                                             self.cb_image, 10)
         self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
 
-        # GUI windows
+        # GUI
         cv2.namedWindow(f'{self.ns}-Cam',       cv2.WINDOW_NORMAL)
         cv2.namedWindow(f'{self.ns}-Mask',      cv2.WINDOW_NORMAL)
         cv2.namedWindow(f'{self.ns}-Obstacle',  cv2.WINDOW_NORMAL)
         atexit.register(cv2.destroyAllWindows)
 
-        self.get_logger().info('Adaptive controller ready – call /start_line_follower to move.')
+        self.get_logger().info('Filled-blob controller ready (call /start_line_follower).')
 
-    # ── service callbacks ───────────────────────────────────────────────
+    # ── services ────────────────────────────────────────────────────────
     def srv_start(self, _rq, _rs):
         self.enabled = True
         self.get_logger().info('▶ movement ENABLED')
@@ -83,7 +80,7 @@ class LineFollower(Node):
         self.get_logger().info('■ movement DISABLED')
         return _rs
 
-    # ── image callback ──────────────────────────────────────────────────
+    # ── main image callback ─────────────────────────────────────────────
     def cb_image(self, msg: Image):
         try:
             img = self.cv.imgmsg_to_cv2(msg, 'bgr8')
@@ -95,7 +92,7 @@ class LineFollower(Node):
         crop = img[H - CROP_H:H, :]
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
 
-        # ---------- hybrid obstacle mask --------------------------------
+        # -------- rough obstacle mask (dark + edge) --------------------
         roi_bot = int(CROP_H * ROI_HEIGHT_FRACTION)
         roi     = gray[0:roi_bot, :]
 
@@ -107,11 +104,18 @@ class LineFollower(Node):
         edges = cv2.Canny(roi, 50, 150)
         edges = cv2.dilate(edges, None, iterations=2)
 
-        obs_mask = cv2.bitwise_or(dark, edges)
+        rough_mask = cv2.bitwise_or(dark, edges)
 
+        # -------- fill each contour → solid blobs ----------------------
+        filled_mask = np.zeros_like(rough_mask)
+        cnts, _ = cv2.findContours(rough_mask, cv2.RETR_EXTERNAL,
+                                   cv2.CHAIN_APPROX_SIMPLE)
+        for c in cnts:
+            cv2.drawContours(filled_mask, [c], -1, 255, cv2.FILLED)
+
+        # obstacle detection on filled blobs
         obstacle = False
-        for c in cv2.findContours(obs_mask, cv2.RETR_EXTERNAL,
-                                  cv2.CHAIN_APPROX_SIMPLE)[0]:
+        for c in cnts:
             if cv2.contourArea(c) < MIN_AREA_OBS:
                 continue
             x, y, w, h = cv2.boundingRect(c)
@@ -129,7 +133,7 @@ class LineFollower(Node):
             self.block = False
             self.get_logger().info('Path clear – RESUME')
 
-        # ---------- adaptive line following -----------------------------
+        # -------- line following --------------------------------------
         twist = Twist()
         vis_full = np.zeros_like(gray)
 
@@ -137,21 +141,12 @@ class LineFollower(Node):
             roi_start = CROP_H - int(CROP_H * LINE_ROI_FRAC)
             line_roi  = gray[roi_start:CROP_H, :]
 
-            # adaptive Gaussian threshold → robust to lighting
-            bin_adapt = cv2.adaptiveThreshold(
-                cv2.GaussianBlur(line_roi, (5, 5), 0),
-                255,
-                cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                cv2.THRESH_BINARY_INV,
-                ADAPT_BLOCK,
-                ADAPT_C
-            )
-
-            cnts, _ = cv2.findContours(bin_adapt, cv2.RETR_EXTERNAL,
-                                       cv2.CHAIN_APPROX_SIMPLE)
+            _, bin_mask = cv2.threshold(line_roi, 200, 255, cv2.THRESH_BINARY_INV)
+            line_cnts, _ = cv2.findContours(bin_mask, cv2.RETR_EXTERNAL,
+                                            cv2.CHAIN_APPROX_SIMPLE)
 
             best = None
-            for c in cnts:
+            for c in line_cnts:
                 _, _, _, h = cv2.boundingRect(c)
                 if h > MAX_LINE_HEIGHT:
                     continue
@@ -169,18 +164,18 @@ class LineFollower(Node):
                                (cx, CROP_H - int(LINE_ROI_FRAC * CROP_H / 2)),
                                4, (0, 255, 0), -1)
 
-                # draw only the accepted contour into mask
-                local_mask = np.zeros_like(bin_adapt)
-                cv2.drawContours(local_mask, [best], -1, 255, cv2.FILLED)
-                vis_full[roi_start:CROP_H, :] = local_mask
+                local_vis = np.zeros_like(bin_mask)
+                cv2.drawContours(local_vis, [best], -1, 255, cv2.FILLED)
+                vis_full[roi_start:CROP_H, :] = local_vis
 
-        # show windows & publish
+        # publish & display
+        self.pub.publish(twist)
+
         cv2.imshow(f'{self.ns}-Mask', vis_full)
         cv2.imshow(f'{self.ns}-Cam', cv2.resize(img, (0, 0), fx=1.2, fy=1.2))
         cv2.imshow(f'{self.ns}-Obstacle',
-                   cv2.resize(obs_mask, (0, 0), fx=2.0, fy=2.0))
+                   cv2.resize(filled_mask, (0, 0), fx=2.0, fy=2.0))
         cv2.waitKey(1)
-        self.pub.publish(twist)
 
     # -------------------------------------------------------------------
     def _halt(self):
