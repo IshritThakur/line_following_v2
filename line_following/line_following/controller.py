@@ -32,8 +32,8 @@ from sensor_msgs.msg import Image
 from std_srvs.srv import Empty
 
 # ── tuning ──────────────────────────────────────────────────────────────
-LINEAR_SPEED        = 0.05
-TURN_GAIN           = 1.0 / 150.0
+LINEAR_SPEED        = 0.10
+TURN_GAIN           = 1.0 / 80.0
 CROP_H              = 120      # height (px) of bottom stripe analysed
 
 # obstacle detector
