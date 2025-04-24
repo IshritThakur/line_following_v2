@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
 Binary-threshold line follower with FILLED-BLOB obstacle avoidance
-and debounce (hysteresis).
+and debounce.
 
-Stops after 3 consecutive frames that show an obstacle blob,
-resumes only after 5 consecutive clear frames.
+Runs at LINEAR_SPEED = 0.10 m/s with TURN_GAIN = 1/90 rad/s per pixel error.
 """
 
 import atexit
@@ -18,8 +17,8 @@ from sensor_msgs.msg import Image
 from std_srvs.srv import Empty
 
 # ── tuning ──────────────────────────────────────────────────────────────
-LINEAR_SPEED        = 0.05
-TURN_GAIN           = 1.0 / 150.0
+LINEAR_SPEED        = 0.10        # <- faster
+TURN_GAIN           = 1.0 / 90.0  # <- tighter turns
 CROP_H              = 120
 
 # obstacle detector
@@ -29,8 +28,8 @@ MIN_WIDTH_OBS       = 80
 ROI_HEIGHT_FRACTION = 0.6
 
 # debounce
-OBS_FRAMES          = 3     # need ≥ this many hits to stop
-CLEAR_FRAMES        = 5     # need ≥ this many clear frames to resume
+OBS_FRAMES          = 3
+CLEAR_FRAMES        = 5
 
 # line detector
 LINE_ROI_FRAC       = 0.30
@@ -46,8 +45,6 @@ class LineFollower(Node):
         self.cv      = CvBridge()
         self.enabled = False
         self.block   = False
-
-        # debounce counters
         self.obs_count   = 0
         self.clear_count = 0
 
@@ -56,19 +53,19 @@ class LineFollower(Node):
         self.create_service(Empty, 'stop_line_follower',  self.srv_stop)
 
         # topics
-        self.sub = self.create_subscription(Image, 'camera/image_raw',
-                                            self.cb_image, 10)
+        self.sub = self.create_subscription(
+            Image, 'camera/image_raw', self.cb_image, 10)
         self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
 
-        # GUI windows
+        # GUI
         cv2.namedWindow(f'{self.ns}-Cam',       cv2.WINDOW_NORMAL)
         cv2.namedWindow(f'{self.ns}-Mask',      cv2.WINDOW_NORMAL)
         cv2.namedWindow(f'{self.ns}-Obstacle',  cv2.WINDOW_NORMAL)
         atexit.register(cv2.destroyAllWindows)
 
-        self.get_logger().info('Filled-blob controller with debounce ready.')
+        self.get_logger().info('Controller ready (faster speed, sharper turns).')
 
-    # ── services ────────────────────────────────────────────────────────
+    # ── service callbacks ───────────────────────────────────────────────
     def srv_start(self, _rq, _rs):
         self.enabled = True
         self.get_logger().info('▶ movement ENABLED')
@@ -80,7 +77,7 @@ class LineFollower(Node):
         self.get_logger().info('■ movement DISABLED')
         return _rs
 
-    # ── image callback ──────────────────────────────────────────────────
+    # ── main image callback ─────────────────────────────────────────────
     def cb_image(self, msg: Image):
         try:
             img = self.cv.imgmsg_to_cv2(msg, 'bgr8')
@@ -92,9 +89,9 @@ class LineFollower(Node):
         crop = img[H - CROP_H:H, :]
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
 
-        # ---------- FILLED-BLOB obstacle mask ---------------------------
+        # ---------- filled-blob obstacle mask --------------------------
         roi_bot = int(CROP_H * ROI_HEIGHT_FRACTION)
-        roi = gray[:roi_bot, :]
+        roi     = gray[:roi_bot, :]
 
         _, dark = cv2.threshold(roi, DARK_THR, 255, cv2.THRESH_BINARY_INV)
         dark = cv2.medianBlur(dark, 5)
@@ -104,15 +101,15 @@ class LineFollower(Node):
         edges = cv2.Canny(roi, 50, 150)
         edges = cv2.dilate(edges, None, iterations=2)
 
-        rough_mask = cv2.bitwise_or(dark, edges)
+        rough = cv2.bitwise_or(dark, edges)
 
-        filled_mask = np.zeros_like(rough_mask)
-        cnts, _ = cv2.findContours(rough_mask, cv2.RETR_EXTERNAL,
+        filled = np.zeros_like(rough)
+        cnts, _ = cv2.findContours(rough, cv2.RETR_EXTERNAL,
                                    cv2.CHAIN_APPROX_SIMPLE)
         for c in cnts:
-            cv2.drawContours(filled_mask, [c], -1, 255, cv2.FILLED)
+            cv2.drawContours(filled, [c], -1, 255, cv2.FILLED)
 
-        # obstacle detection on filled blobs
+        # obstacle?
         obstacle = False
         for c in cnts:
             if cv2.contourArea(c) < MIN_AREA_OBS:
@@ -124,7 +121,7 @@ class LineFollower(Node):
             cv2.rectangle(crop, (x, y), (x + w, y + h), (0, 0, 255), 2)
             break
 
-        # ---------- debounce logic -------------------------------------
+        # debounce
         if obstacle:
             self.obs_count += 1
             self.clear_count = 0
@@ -141,7 +138,7 @@ class LineFollower(Node):
             self.block = False
             self.get_logger().info('Path clear – RESUME')
 
-        # ---------- line following --------------------------------------
+        # ---------- line following -------------------------------------
         twist = Twist()
         vis_full = np.zeros_like(gray)
 
@@ -149,8 +146,8 @@ class LineFollower(Node):
             roi_start = CROP_H - int(CROP_H * LINE_ROI_FRAC)
             line_roi  = gray[roi_start:CROP_H, :]
 
-            _, bin_mask = cv2.threshold(line_roi, 200, 255, cv2.THRESH_BINARY_INV)
-            line_cnts, _ = cv2.findContours(bin_mask, cv2.RETR_EXTERNAL,
+            _, mask = cv2.threshold(line_roi, 200, 255, cv2.THRESH_BINARY_INV)
+            line_cnts, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                             cv2.CHAIN_APPROX_SIMPLE)
 
             best = None
@@ -168,12 +165,11 @@ class LineFollower(Node):
                     err = cx - (W / 2)
                     twist.linear.x  = LINEAR_SPEED
                     twist.angular.z = -err * TURN_GAIN
-                    cv2.circle(crop,
-                               (cx, CROP_H // 2),
+                    cv2.circle(crop, (cx, CROP_H // 2),
                                4, (0, 255, 0), -1)
-                local_mask = np.zeros_like(bin_mask)
-                cv2.drawContours(local_mask, [best], -1, 255, cv2.FILLED)
-                vis_full[roi_start:CROP_H, :] = local_mask
+                local_vis = np.zeros_like(mask)
+                cv2.drawContours(local_vis, [best], -1, 255, cv2.FILLED)
+                vis_full[roi_start:CROP_H, :] = local_vis
 
         self.pub.publish(twist)
 
@@ -181,7 +177,7 @@ class LineFollower(Node):
         cv2.imshow(f'{self.ns}-Mask', vis_full)
         cv2.imshow(f'{self.ns}-Cam', cv2.resize(img, (0, 0), fx=1.2, fy=1.2))
         cv2.imshow(f'{self.ns}-Obstacle',
-                   cv2.resize(filled_mask, (0, 0), fx=2.0, fy=2.0))
+                   cv2.resize(filled, (0, 0), fx=2.0, fy=2.0))
         cv2.waitKey(1)
 
     # -------------------------------------------------------------------
