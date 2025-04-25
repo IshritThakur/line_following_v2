@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <sdf version="1.6">
+<physics type="ode">
+    <!-- 0.004 s step ≈ 250 Hz -->
+    <max_step_size>0.004</max_step_size>
+    <real_time_update_rate>250</real_time_update_rate>
+    </physics>
   <world name="custom_world">
     <!-- Include default ground plane and lighting -->
     <include>
@@ -41,7 +46,6 @@
       <!-- Adjust the pose as needed to place your track -->
       <pose>0 0 0 0 0 0</pose>
       <uri>model://track2</uri>
-    </include>
-    
+    </include>  
   </world>
 </sdf>
